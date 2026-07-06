@@ -26,6 +26,12 @@ public class UserController {
                                .build();
 
         BeanUtils.copyProperties(newUser, createdUser);
+
+        if (createdUser.getName() == null || createdUser.getName()
+                                                        .isBlank()) {
+            createdUser.setName(createdUser.getLogin());
+        }
+
         userStore.add(createdUser);
         return createdUser;
     }
