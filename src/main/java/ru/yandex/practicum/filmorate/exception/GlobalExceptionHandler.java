@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @ControllerAdvice
 @SuppressWarnings("unused")
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
@@ -44,6 +46,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 fieldErrors
         );
 
+        log.warn("Ошибка валидации: {}", ex.getBindingResult()
+                                           .getAllErrors());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -57,6 +62,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 getPath(request),
                 null
         );
+        log.error("Ресурс не найден: {}", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 

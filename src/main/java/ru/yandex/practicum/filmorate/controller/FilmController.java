@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.create.film.FilmDto;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/films")
 @SuppressWarnings("unused")
+@Slf4j
 public class FilmController {
 
     Store<Film> filmStore = new Store<>();
@@ -24,6 +26,7 @@ public class FilmController {
         Film createdFilm = Film.builder().id(id).build();
         BeanUtils.copyProperties(film, createdFilm);
         filmStore.add(createdFilm);
+        log.info("Фильм создан: id={}, name={}", createdFilm.getId(), createdFilm.getName());
         return createdFilm;
     }
 
@@ -34,10 +37,11 @@ public class FilmController {
 
     @PutMapping("/{id}")
     public Film edit(@PathVariable UUID id, @RequestBody @Valid FilmDto film) {
-        Film findedFilm = filmStore.getItemById(id)
+        Film foundFilm = filmStore.getItemById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Фильм с ID " + id + " не найден"));
-        BeanUtils.copyProperties(film, findedFilm);
-        return findedFilm;
+        BeanUtils.copyProperties(film, foundFilm);
+        log.info("Фильм обновлён: id={}, name={}", foundFilm.getId(), foundFilm.getName());
+        return foundFilm;
     }
 
 }

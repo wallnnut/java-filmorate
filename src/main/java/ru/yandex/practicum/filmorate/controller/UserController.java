@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.create.user.UserDto;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 @SuppressWarnings("unused")
+@Slf4j
 public class UserController {
     Store<User> userStore = new Store<>();
 
@@ -33,6 +35,7 @@ public class UserController {
         }
 
         userStore.add(createdUser);
+        log.info("Пользователь создан: id={}, login={}", createdUser.getId(), createdUser.getLogin());
         return createdUser;
     }
 
@@ -43,11 +46,12 @@ public class UserController {
 
     @PutMapping("/{id}")
     public User edit(@PathVariable UUID id, @RequestBody @Valid UserDto user) {
-        User findedUser = userStore.getItemById(id)
-                                   .orElseThrow(() ->
-                                           new ResourceNotFoundException("Пользователь с ID " + id + " не найден"));
+        User foundUser = userStore.getItemById(id)
+                                  .orElseThrow(() ->
+                                          new ResourceNotFoundException("Пользователь с ID " + id + " не найден"));
 
-        BeanUtils.copyProperties(user, findedUser);
-        return findedUser;
+        BeanUtils.copyProperties(user, foundUser);
+        log.info("Пользователь обновлён: id={}, login={}", foundUser.getId(), foundUser.getLogin());
+        return foundUser;
     }
 }

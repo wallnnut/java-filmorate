@@ -1,6 +1,9 @@
 package ru.yandex.practicum.filmorate.dto.create.user;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -12,7 +15,6 @@ public class UserDto {
     private String email;
 
     @NotBlank(message = "Логин не может быть пустым")
-    @Pattern(regexp = "^\\S+$", message = "Логин не должен содержать пробелов")
     private String login;
 
     private String name;
