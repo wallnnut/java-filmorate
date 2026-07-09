@@ -11,6 +11,6 @@ import ru.yandex.practicum.filmorate.dto.create.UserDto;
 @SuperBuilder
 public class UserEditDto extends UserDto {
     @NotNull
-    private long id;
+    private Long id;
 
 }
