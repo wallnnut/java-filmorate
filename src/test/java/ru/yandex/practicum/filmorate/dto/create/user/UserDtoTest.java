@@ -25,7 +25,9 @@ class UserDtoTest {
 
     @Test
     void shouldValidateCorrectUser() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName("Ivan Ivanov");
@@ -37,7 +39,8 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenNameIsNull() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName(null);
@@ -49,7 +52,9 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenNameIsEmpty() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName("");
@@ -61,7 +66,9 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenBirthdayIsToday() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -73,7 +80,9 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenLoginContainsSpaces() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivan ov");
         user.setName("Ivan");
@@ -85,7 +94,9 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenLoginStartsWithSpace() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin(" ivanov");
         user.setName("Ivan");
@@ -97,7 +108,9 @@ class UserDtoTest {
 
     @Test
     void shouldPassWhenLoginEndsWithSpace() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov ");
         user.setName("Ivan");
@@ -109,7 +122,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenEmailIsBlank() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -125,7 +140,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenEmailIsNull() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail(null);
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -141,7 +158,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenEmailDoesNotContainAt() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("userexample.com");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -157,7 +176,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenEmailIsInvalid() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -173,7 +194,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenLoginIsBlank() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("");
         user.setName("Ivan");
@@ -189,7 +212,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenLoginIsNull() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin(null);
         user.setName("Ivan");
@@ -205,7 +230,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenLoginIsOnlySpaces() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("   ");
         user.setName("Ivan");
@@ -221,7 +248,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenBirthdayIsNull() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -237,7 +266,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenBirthdayIsInFuture() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("user@example.com");
         user.setLogin("ivanov");
         user.setName("Ivan");
@@ -254,7 +285,9 @@ class UserDtoTest {
 
     @Test
     void shouldFailWhenMultipleViolations() {
-        UserDto user = new UserDto();
+        UserDto user = UserDto.builder()
+                              .build();
+        ;
         user.setEmail("invalid");
         user.setLogin("");
         user.setName("Ivan");

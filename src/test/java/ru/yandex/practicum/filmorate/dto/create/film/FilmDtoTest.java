@@ -25,7 +25,8 @@ class FilmDtoTest {
 
     @Test
     void shouldValidateCorrectFilm() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Inception");
         film.setDescription("A thief who steals corporate secrets through dream-sharing technology.");
         film.setReleaseDate(LocalDate.of(2010, 7, 16));
@@ -37,7 +38,8 @@ class FilmDtoTest {
 
     @Test
     void shouldPassWhenDescriptionExactly200Chars() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("a".repeat(200));
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -49,7 +51,8 @@ class FilmDtoTest {
 
     @Test
     void shouldPassWhenReleaseDateExactly1895_12_28() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
@@ -61,7 +64,8 @@ class FilmDtoTest {
 
     @Test
     void shouldPassWhenReleaseDateAfter1895_12_28() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(1895, 12, 29));
@@ -73,7 +77,8 @@ class FilmDtoTest {
 
     @Test
     void shouldPassWhenDurationIsPositive() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -86,7 +91,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenNameIsBlank() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("");   // пустая строка
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -102,7 +108,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenNameIsNull() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName(null);
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -118,7 +125,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenDescriptionExceedsMaxLength() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("a".repeat(201)); // 201 символ
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -134,7 +142,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenReleaseDateBefore1895_12_28() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(1895, 12, 27)); // на день раньше
@@ -150,7 +159,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenReleaseDateIsNull() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(null); // нарушение @NotNull
@@ -166,7 +176,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenDurationIsZero() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -182,7 +193,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenDurationIsNegative() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("Film");
         film.setDescription("desc");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
@@ -198,7 +210,8 @@ class FilmDtoTest {
 
     @Test
     void shouldFailWhenMultipleViolations() {
-        FilmDto film = new FilmDto();
+        FilmDto film = FilmDto.builder()
+                              .build();
         film.setName("");
         film.setDescription("a".repeat(300));
         film.setReleaseDate(LocalDate.of(1800, 1, 1));
