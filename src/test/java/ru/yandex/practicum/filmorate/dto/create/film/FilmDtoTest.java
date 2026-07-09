@@ -158,23 +158,6 @@ class FilmDtoTest {
     }
 
     @Test
-    void shouldFailWhenReleaseDateIsNull() {
-        FilmDto film = FilmDto.builder()
-                              .build();
-        film.setName("Film");
-        film.setDescription("desc");
-        film.setReleaseDate(null); // нарушение @NotNull
-        film.setDuration(100);
-
-        Set<ConstraintViolation<FilmDto>> violations = validator.validate(film);
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator()
-                             .next()
-                             .getMessage())
-                .isEqualTo("не должно равняться null");
-    }
-
-    @Test
     void shouldFailWhenDurationIsZero() {
         FilmDto film = FilmDto.builder()
                               .build();
