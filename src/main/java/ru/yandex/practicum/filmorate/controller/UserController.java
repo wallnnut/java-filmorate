@@ -4,13 +4,13 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.create.user.UserDto;
+import ru.yandex.practicum.filmorate.dto.create.UserDto;
+import ru.yandex.practicum.filmorate.dto.edit.UserEditDto;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.store.Store;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -21,7 +21,7 @@ public class UserController {
 
     @PostMapping
     public User add(@RequestBody @Valid UserDto newUser) {
-        UUID id = UUID.randomUUID();
+        long id = userStore.getLastId() + 1;
 
         User createdUser = User.builder()
                                .id(id)
@@ -44,13 +44,13 @@ public class UserController {
         return userStore.getItems();
     }
 
-    @PutMapping("/{id}")
-    public User edit(@PathVariable UUID id, @RequestBody @Valid UserDto user) {
-        User foundUser = userStore.getItemById(id)
+    @PutMapping
+    public User edit(@RequestBody @Valid UserEditDto user) {
+        User foundUser = userStore.getItemById(user.getId())
                                   .orElseThrow(() ->
-                                          new ResourceNotFoundException("Пользователь с ID " + id + " не найден"));
+                                          new ResourceNotFoundException("Пользователь с ID " + user.getId() + " не найден"));
 
-        BeanUtils.copyProperties(user, foundUser);
+        userStore.edit(foundUser);
         log.info("Пользователь обновлён: id={}, login={}", foundUser.getId(), foundUser.getLogin());
         return foundUser;
     }

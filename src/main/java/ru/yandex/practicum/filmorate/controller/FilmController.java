@@ -4,13 +4,13 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.create.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.create.FilmDto;
+import ru.yandex.practicum.filmorate.dto.edit.FilmEditDto;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.store.Store;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/films")
@@ -22,8 +22,10 @@ public class FilmController {
 
     @PostMapping
     public Film add(@RequestBody @Valid FilmDto film) {
-        UUID id = UUID.randomUUID();
-        Film createdFilm = Film.builder().id(id).build();
+        long id = filmStore.getLastId() + 1;
+        Film createdFilm = Film.builder()
+                               .id(id)
+                               .build();
         BeanUtils.copyProperties(film, createdFilm);
         filmStore.add(createdFilm);
         log.info("Фильм создан: id={}, name={}", createdFilm.getId(), createdFilm.getName());
@@ -35,13 +37,16 @@ public class FilmController {
         return filmStore.getItems();
     }
 
-    @PutMapping("/{id}")
-    public Film edit(@PathVariable UUID id, @RequestBody @Valid FilmDto film) {
-        Film foundFilm = filmStore.getItemById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Фильм с ID " + id + " не найден"));
-        BeanUtils.copyProperties(film, foundFilm);
+    @PutMapping
+    public Film edit(@RequestBody @Valid FilmEditDto film) {
+        Film foundFilm = filmStore.getItemById(film.getId())
+                                  .orElseThrow(() ->
+                                          new ResourceNotFoundException("Фильм с ID " + film.getId() + " не найден"));
+        filmStore.edit(foundFilm);
+
         log.info("Фильм обновлён: id={}, name={}", foundFilm.getId(), foundFilm.getName());
         return foundFilm;
+
     }
 
 }

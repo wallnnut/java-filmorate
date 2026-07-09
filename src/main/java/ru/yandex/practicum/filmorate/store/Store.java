@@ -7,9 +7,10 @@ import java.util.*;
 
 @Data
 public class Store<T extends BaseEntity> {
-    private Map<UUID, T> store = new HashMap<>();
+    private Map<Long, T> store = new HashMap<>();
+    private long lastId = 0;
 
-    public Optional<T> getItemById(UUID id) {
+    public Optional<T> getItemById(long id) {
         T element = store.get(id);
         if (element == null) {
             return Optional.empty();
@@ -19,14 +20,11 @@ public class Store<T extends BaseEntity> {
 
     public void add(T item) {
         store.put(item.getId(), item);
+        lastId = item.getId();
     }
 
     public void edit(T item) {
         store.computeIfPresent(item.getId(), (key, value) -> item);
-    }
-
-    public boolean delete(UUID id) {
-        return store.remove(id) != null;
     }
 
     public List<T> getItems() {
