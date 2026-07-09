@@ -1,52 +1,80 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.create.FilmDto;
-import ru.yandex.practicum.filmorate.dto.edit.FilmEditDto;
-import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.store.Store;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
-@SuppressWarnings("unused")
-@Slf4j
 public class FilmController {
+    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final Integer MAX_DESCRIPTION_LENGTH = 200;
 
-    Store<Film> filmStore = new Store<>();
+    private final Map<Long, Film> films = new HashMap<>();
 
     @PostMapping
-    public Film add(@RequestBody @Valid FilmDto film) {
-        long id = filmStore.getLastId() + 1;
-        Film createdFilm = Film.builder()
-                               .id(id)
-                               .build();
-        BeanUtils.copyProperties(film, createdFilm);
-        filmStore.add(createdFilm);
-        log.info("Фильм создан: id={}, name={}", createdFilm.getId(), createdFilm.getName());
-        return createdFilm;
-    }
-
-    @GetMapping
-    public List<Film> getFilms() {
-        return filmStore.getItems();
+    public Film addFilm(@RequestBody Film film) {
+        log.info("Добавление фильма: {}", film);
+        validate(film);
+        film.setId(getNextId());
+        films.put(film.getId(), film);
+        log.info("Фильм добавлен с id={}", film.getId());
+        return film;
     }
 
     @PutMapping
-    public Film edit(@RequestBody @Valid FilmEditDto film) {
-        Film foundFilm = filmStore.getItemById(film.getId())
-                                  .orElseThrow(() ->
-                                          new ResourceNotFoundException("Фильм с ID " + film.getId() + " не найден"));
-        filmStore.edit(foundFilm);
-
-        log.info("Фильм обновлён: id={}, name={}", foundFilm.getId(), foundFilm.getName());
-        return foundFilm;
-
+    public Film updateFilm(@RequestBody Film film) {
+        log.info("Обновление фильма: {}", film);
+        if (!films.containsKey(film.getId())) {
+            log.warn("Фильм с id={} не найден", film.getId());
+            throw new NotFoundException("Фильм с id=" + film.getId() + " не найден");
+        }
+        validate(film);
+        films.put(film.getId(), film);
+        log.info("Фильм с id={} обновлён", film.getId());
+        return film;
     }
 
+    @GetMapping
+    public List<Film> getAllFilms() {
+        log.info("Запрос списка всех фильмов");
+        return new ArrayList<>(films.values());
+    }
+
+    private void validate(Film film) {
+        if (film.getName() == null || film.getName().isBlank()) {
+            log.warn("Валидация не пройдена: название фильма пустое");
+            throw new ValidationException("Название фильма не может быть пустым");
+        }
+        if (film.getDescription() != null && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
+            log.warn("Валидация не пройдена: описание превышает {} символов", MAX_DESCRIPTION_LENGTH);
+            throw new ValidationException("Описание не может превышать 200 символов");
+        }
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
+            log.warn("Валидация не пройдена: дата релиза {} раньше {} или не указана", film.getReleaseDate(), MIN_RELEASE_DATE);
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
+        }
+        if (film.getDuration() <= 0) {
+            log.warn("Валидация не пройдена: продолжительность {} не является положительным числом", film.getDuration());
+            throw new ValidationException("Продолжительность фильма должна быть положительным числом");
+        }
+    }
+
+    private long getNextId() {
+        long currentMaxId = films.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0);
+        return ++currentMaxId;
+    }
 }
