@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @Data
 public class FilmDto {
-    Id id;
+    private Id id;
     @NotBlank(message = "Название не может быть пустым")
     private String name;
 
