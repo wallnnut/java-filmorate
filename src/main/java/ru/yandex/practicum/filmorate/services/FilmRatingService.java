@@ -19,27 +19,35 @@ public class FilmRatingService {
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
 
-
     public void putLike(Id filmId, Id userId) {
+        log.info("Attempting to add like from user {} to film {}", userId, filmId);
+        log.debug("Validating existence of film {} and user {}", filmId, userId);
         filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
-        log.debug("User {} likes film {}", userId, filmId);
+        log.debug("Film and user validation passed, storing like");
         filmRatingStorage.putLike(filmId, userId);
+        log.info("Like from user {} to film {} successfully added", userId, filmId);
     }
 
     public void removeLike(Id filmId, Id userId) {
+        log.info("Attempting to remove like from user {} on film {}", userId, filmId);
+        log.debug("Validating existence of film {} and user {}", filmId, userId);
         filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
-        log.debug("User {} removes like from film {}", userId, filmId);
+        log.debug("Film and user validation passed, removing like");
         filmRatingStorage.removeLike(filmId, userId);
+        log.info("Like from user {} on film {} successfully removed", userId, filmId);
     }
 
     public List<Id> getMostPopular(int count) {
-        log.debug("Requesting top {} popular films", count);
-        return filmRatingStorage.getMostPopular(count);
+        log.info("Requesting top {} most popular films", count);
+        List<Id> popularIds = filmRatingStorage.getMostPopular(count);
+        log.debug("Returning {} popular film IDs", popularIds.size());
+        return popularIds;
     }
 
     public List<Id> getMostPopular() {
+        log.debug("Requesting most popular films with default count ({})", DEFAULT_COUNT);
         return getMostPopular(DEFAULT_COUNT);
     }
 }

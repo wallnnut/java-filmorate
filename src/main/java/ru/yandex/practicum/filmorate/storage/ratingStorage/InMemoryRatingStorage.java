@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.ratingStorage;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Id;
 
 import java.util.*;
@@ -20,8 +21,19 @@ public class InMemoryRatingStorage implements RatingStorage {
 
     @Override
     public void removeLike(Id filmId, Id userId) {
+        if (!filmLikes.containsKey(filmId)) {
+            throw new NotFoundException(String.format("entity with id=%d does not exists", filmId.getId()));
+        }
         Set<Id> ids = filmLikes.get(filmId);
-        if (ids != null) ids.remove(userId);
+        if (ids != null) {
+            if (!ids.contains(userId)) {
+                throw new NotFoundException(String.format("entity with id=%d does not exists", userId.getId()));
+            }
+            ids.remove(userId);
+            if (ids.isEmpty()) {
+                filmLikes.remove(filmId);
+            }
+        }
     }
 
     @Override
