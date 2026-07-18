@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
+import ru.yandex.practicum.filmorate.services.UserService;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class FilmController {
     private final FilmService filmService;
     private final FilmMapper filmMapper;
     private final FilmRatingService filmRatingService;
+    private final UserService userService;
 
     @PostMapping
     public Film addFilm(@RequestBody @Valid FilmDto film) {
@@ -44,11 +46,15 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@PathVariable Id id, @PathVariable Id userId) {
+        filmService.getFilmById(id);
+        userService.getUserById(userId);
         filmRatingService.putLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void unlikeFilm(@PathVariable Id id, @PathVariable Id userId) {
+        filmService.getFilmById(id);
+        userService.getUserById(userId);
         filmRatingService.removeLike(id, userId);
     }
 
