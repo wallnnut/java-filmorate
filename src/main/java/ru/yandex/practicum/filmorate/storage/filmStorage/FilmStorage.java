@@ -8,8 +8,12 @@ import java.util.List;
 
 public interface FilmStorage {
     public Film addFilm(Film film);
+
     public Film updateFilm(Film film) throws NotFoundException;
+
     public Film removeFilm(Id id) throws NotFoundException;
+
     public List<Film> getAllFilms();
+
     public Film getFilmById(Id id) throws NotFoundException;
 }

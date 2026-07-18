@@ -22,7 +22,9 @@ import java.time.LocalDateTime;
 public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        return new ResponseEntity<>(new ValidationException(ex.getFieldError().getField().toString()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ValidationException(ex.getFieldError()
+                                                              .getField()
+                                                              .toString()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -30,7 +32,8 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 ex.getMessage(),
                 HttpStatus.NOT_FOUND.value(),
-                LocalDateTime.now().toString()
+                LocalDateTime.now()
+                             .toString()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }

@@ -56,6 +56,7 @@ public class FilmController {
     public List<Film> getPopularFilms(@RequestParam(required = false, defaultValue = "10") int count) {
         List<Id> popularIds = filmRatingService.getMostPopular(count);
         return popularIds.stream()
-                         .map(filmService::getFilmById).toList();
+                         .map(filmService::getFilmById)
+                         .toList();
     }
 }

@@ -7,6 +7,6 @@ import ru.yandex.practicum.filmorate.model.User;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
     UserDto toDto(User user);
-    User toEntity(UserDto user);
 
+    User toEntity(UserDto user);
 }

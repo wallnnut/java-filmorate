@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Id;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class BaseStorage<T extends BaseEntity> {
@@ -31,7 +30,9 @@ public class BaseStorage<T extends BaseEntity> {
     }
 
     public List<T> getItemByIds(List<Id> ids) throws NotFoundException {
-        return ids.stream().map(storage::get).toList();
+        return ids.stream()
+                  .map(storage::get)
+                  .toList();
     }
 
     public T edit(T item) throws NotFoundException {
@@ -53,7 +54,9 @@ public class BaseStorage<T extends BaseEntity> {
     }
 
     public List<T> getList() {
-        return storage.values().stream().toList();
+        return storage.values()
+                      .stream()
+                      .toList();
     }
 
 }

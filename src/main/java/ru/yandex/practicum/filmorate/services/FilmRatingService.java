@@ -12,8 +12,8 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class FilmRatingService {
-    private final RatingStorage filmRatingStorage;
     private static final int DEFAULT_COUNT = 10;
+    private final RatingStorage filmRatingStorage;
 
     public void putLike(Id filmId, Id userId) {
         log.debug("User {} likes film {}", userId, filmId);

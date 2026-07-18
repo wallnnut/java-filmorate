@@ -14,8 +14,10 @@ public class InMemoryFriendsStorage implements FriendsStorage {
         if (userId.equals(friendId)) {
             return;
         }
-        friendsMap.computeIfAbsent(userId, i -> new HashSet<>()).add(friendId);
-        friendsMap.computeIfAbsent(friendId, i -> new HashSet<>()).add(userId);
+        friendsMap.computeIfAbsent(userId, i -> new HashSet<>())
+                  .add(friendId);
+        friendsMap.computeIfAbsent(friendId, i -> new HashSet<>())
+                  .add(userId);
     }
 
     @Override
@@ -41,7 +43,9 @@ public class InMemoryFriendsStorage implements FriendsStorage {
 
     @Override
     public List<Id> getFriendIds(Id userId) {
-        return friendsMap.getOrDefault(userId, new HashSet<>()).stream().toList();
+        return friendsMap.getOrDefault(userId, new HashSet<>())
+                         .stream()
+                         .toList();
     }
 
     @Override
@@ -51,6 +55,7 @@ public class InMemoryFriendsStorage implements FriendsStorage {
 
         Set<Id> common = new HashSet<>(friendsA);
         common.retainAll(friendsB);
-        return common.stream().toList();
+        return common.stream()
+                     .toList();
     }
 }
