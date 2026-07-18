@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 @AllArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    BaseStorage<User> userStorage;
+    private final BaseStorage<User> userStorage = new BaseStorage<>();
 
     @Override
     public User addUser(User user) {

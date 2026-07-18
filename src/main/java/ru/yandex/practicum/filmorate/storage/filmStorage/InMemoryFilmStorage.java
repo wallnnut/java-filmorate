@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 @AllArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
-    BaseStorage<Film> filmStorage;
+    private final BaseStorage<Film> filmStorage = new BaseStorage<>();
 
     @Override
     public Film addFilm(Film film) {

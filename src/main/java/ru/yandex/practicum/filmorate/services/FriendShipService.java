@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.friendsStorage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class FriendShipService {
     private final FriendsStorage friendsStorage;
+    private final UserStorage userStorage;
+
 
     public void addFriend(Id userId, Id friendId) {
         if (userId == null || friendId == null) {
@@ -24,6 +27,8 @@ public class FriendShipService {
             log.warn("User {} tried to add himself as friend", userId);
             return;
         }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
         log.debug("Adding friend: user {} -> friend {}", userId, friendId);
         friendsStorage.addFriend(userId, friendId);
     }
@@ -37,6 +42,8 @@ public class FriendShipService {
             log.warn("User {} tried to remove himself from friends", userId);
             return;
         }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
         log.debug("Removing friend: user {} -> friend {}", userId, friendId);
         friendsStorage.removeFriend(userId, friendId);
     }
@@ -52,6 +59,8 @@ public class FriendShipService {
     }
 
     public List<Id> getCommonFriends(Id userAId, Id userBId) {
+        userStorage.getUserById(userAId);
+        userStorage.getUserById(userBId);
         if (userAId == null || userBId == null) {
             log.warn("getCommonFriends called with null id(s)");
             return Collections.emptyList();

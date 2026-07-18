@@ -25,18 +25,12 @@ public class UserController {
     @PutMapping("/{userId}/friends/{friendId}")
     public void addFriend(@PathVariable Id userId, @PathVariable Id friendId) {
         log.info("Пользователь id={} добавляет в друзья id={}", userId, friendId);
-        log.debug("Попытка найти пользователя с id={}", userId);
-        userService.getUserById(userId);
-        log.debug("Попытка найти пользователя с id={}", friendId);
-        userService.getUserById(friendId);
         friendShipService.addFriend(userId, friendId);
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")
     public void removeFriend(@PathVariable Id userId, @PathVariable Id friendId) {
         log.debug("Попытка найти пользователя с id={}", userId);
-        userService.getUserById(userId);
-        log.debug("Попытка найти пользователя с id={}", friendId);
         friendShipService.removeFriend(userId, friendId);
     }
 
