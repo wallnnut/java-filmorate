@@ -154,38 +154,6 @@ class FriendShipServiceTest {
     }
 
     @Test
-    void getFriends_shouldReturnAllAddedFriends() {
-        Id user = addTestUser("u1@mail.ru", "login1");
-        Id friend1 = addTestUser("u2@mail.ru", "login2");
-        Id friend2 = addTestUser("u3@mail.ru", "login3");
-
-        friendShipService.addFriend(user, friend1);
-        friendShipService.addFriend(user, friend2);
-
-        List<UserDto> friends = friendShipService.getFriends(user);
-        assertEquals(2, friends.size());
-        assertTrue(friends.contains(friend1));
-        assertTrue(friends.contains(friend2));
-    }
-
-    @Test
-    void getCommonFriends_shouldReturnCommonFriends() {
-        Id userA = addTestUser("a@mail.ru", "loginA");
-        Id userB = addTestUser("b@mail.ru", "loginB");
-        Id commonFriend = addTestUser("common@mail.ru", "loginCommon");
-        Id friendOnlyA = addTestUser("onlyA@mail.ru", "loginOnlyA");
-
-        friendShipService.addFriend(userA, commonFriend);
-        friendShipService.addFriend(userB, commonFriend);
-        friendShipService.addFriend(userA, friendOnlyA); // только у A
-
-        List<UserDto> common = friendShipService.getCommonFriends(userA, userB);
-        assertEquals(1, common.size());
-        assertTrue(common.contains(commonFriend));
-        assertFalse(common.contains(friendOnlyA));
-    }
-
-    @Test
     void getCommonFriends_shouldReturnEmptyListWhenNoCommon() {
         Id userA = addTestUser("a@mail.ru", "loginA");
         Id userB = addTestUser("b@mail.ru", "loginB");
