@@ -3,6 +3,9 @@ package ru.yandex.practicum.filmorate.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.mappers.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.ratingStorage.RatingStorage;
@@ -18,6 +21,8 @@ public class FilmRatingService {
     private final RatingStorage filmRatingStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final FilmMapper filmMapper;
+
 
     public void putLike(Id filmId, Id userId) {
         log.info("Attempting to add like from user {} to film {}", userId, filmId);
@@ -39,15 +44,22 @@ public class FilmRatingService {
         log.info("Like from user {} on film {} successfully removed", userId, filmId);
     }
 
-    public List<Id> getMostPopular(int count) {
+    public List<FilmDto> getMostPopular(int count) {
         log.info("Requesting top {} most popular films", count);
         List<Id> popularIds = filmRatingStorage.getMostPopular(count);
+        List<Film> popularFilms = popularIds.stream()
+                                            .map(filmStorage::getFilmById)
+                                            .toList();
         log.debug("Returning {} popular film IDs", popularIds.size());
-        return popularIds;
+        return filmMapper.toDto(popularFilms);
     }
 
-    public List<Id> getMostPopular() {
+    public List<FilmDto> getMostPopular() {
         log.debug("Requesting most popular films with default count ({})", DEFAULT_COUNT);
-        return getMostPopular(DEFAULT_COUNT);
+        List<Id> popularIds = filmRatingStorage.getMostPopular(DEFAULT_COUNT);
+        List<Film> popularFilms = popularIds.stream()
+                                            .map(filmStorage::getFilmById)
+                                            .toList();
+        return filmMapper.toDto(popularFilms);
     }
 }

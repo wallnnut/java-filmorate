@@ -7,16 +7,16 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.List;
 
 public interface UserStorage {
-    public User addUser(User user);
+    User addUser(User user);
 
-    public User updateUser(User user) throws NotFoundException;
+    User updateUser(User user) throws NotFoundException;
 
-    public User removeUser(Id id) throws NotFoundException;
+    User removeUser(Id id) throws NotFoundException;
 
-    public List<User> getAllUsers();
+    List<User> getAllUsers();
 
-    public User getUserById(Id id) throws NotFoundException;
+    User getUserById(Id id) throws NotFoundException;
 
-    public List<User> getUserByIds(List<Id> ids) throws NotFoundException;
+    List<User> getUserByIds(List<Id> ids) throws NotFoundException;
 
 }

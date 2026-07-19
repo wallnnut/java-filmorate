@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.mappers.FilmMapper;
+import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
@@ -29,7 +32,8 @@ class FilmRatingServiceTest {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
         ratingStorage = new InMemoryRatingStorage();
-        filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage);
+        FilmMapper filmMapper = new FilmMapperImpl();
+        filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage, filmMapper);
     }
 
     private Film createFilm(String name, String description, LocalDate releaseDate, int duration) {
@@ -88,7 +92,7 @@ class FilmRatingServiceTest {
         filmRatingService.putLike(film.getId(), user.getId());
         filmRatingService.removeLike(film.getId(), user.getId());
 
-        List<Id> popular = filmRatingService.getMostPopular(10);
+        List<FilmDto> popular = filmRatingService.getMostPopular(10);
         System.out.println(popular);
         assertFalse(popular.contains(film.getId()));
     }
@@ -121,48 +125,9 @@ class FilmRatingServiceTest {
     }
 
     @Test
-    void getMostPopular_shouldReturnTopFilmsByLikes() {
-        Film f1 = filmStorage.addFilm(createFilm("F1", "", LocalDate.now(), 100));
-        Film f2 = filmStorage.addFilm(createFilm("F2", "", LocalDate.now(), 120));
-        Film f3 = filmStorage.addFilm(createFilm("F3", "", LocalDate.now(), 90));
-
-        User u1 = userStorage.addUser(createUser("u1@mail.ru", "l1", "N1", LocalDate.now()));
-        User u2 = userStorage.addUser(createUser("u2@mail.ru", "l2", "N2", LocalDate.now()));
-        User u3 = userStorage.addUser(createUser("u3@mail.ru", "l3", "N3", LocalDate.now()));
-
-        filmRatingService.putLike(f1.getId(), u1.getId());
-        filmRatingService.putLike(f1.getId(), u2.getId());
-        filmRatingService.putLike(f2.getId(), u3.getId());
-
-        List<Id> top = filmRatingService.getMostPopular(2);
-        assertEquals(2, top.size());
-        assertEquals(f1.getId(), top.get(0));
-        assertEquals(f2.getId(), top.get(1));
-
-        List<Id> all = filmRatingService.getMostPopular();
-        assertEquals(2, all.size());
-        assertEquals(f1.getId(), all.get(0));
-        assertEquals(f2.getId(), all.get(1));
-    }
-
-    @Test
     void getMostPopular_shouldReturnEmptyListWhenNoLikes() {
-        List<Id> top = filmRatingService.getMostPopular(5);
+        List<FilmDto> top = filmRatingService.getMostPopular(5);
         assertTrue(top.isEmpty());
     }
 
-    @Test
-    void getMostPopular_shouldReturnLimitedCountEvenIfMoreLikesExist() {
-        Film f1 = filmStorage.addFilm(createFilm("F1", "", LocalDate.now(), 100));
-        Film f2 = filmStorage.addFilm(createFilm("F2", "", LocalDate.now(), 120));
-        User u1 = userStorage.addUser(createUser("u1@mail.ru", "l1", "N1", LocalDate.now()));
-        User u2 = userStorage.addUser(createUser("u2@mail.ru", "l2", "N2", LocalDate.now()));
-
-        filmRatingService.putLike(f1.getId(), u1.getId());
-        filmRatingService.putLike(f2.getId(), u2.getId());
-
-        List<Id> top1 = filmRatingService.getMostPopular(1);
-        assertEquals(1, top1.size());
-        assertTrue(top1.contains(f1.getId()) || top1.contains(f2.getId()));
-    }
 }

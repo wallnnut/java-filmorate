@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
@@ -14,39 +16,41 @@ import java.util.List;
 @AllArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final FilmMapper filmMapper;
 
-    public Film addFilm(Film film) {
+
+    public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
-        Film added = filmStorage.addFilm(film);
+        Film added = filmStorage.addFilm(filmMapper.toEntity(film));
         log.info("Film added successfully with id {}: {}", added.getId(), added);
-        return added;
+        return filmMapper.toDto(added);
     }
 
-    public Film updateFilm(Film film) {
+    public FilmDto updateFilm(FilmDto film) {
         log.info("Attempting to update film: {}", film);
-        Film updated = filmStorage.updateFilm(film);
+        Film updated = filmStorage.updateFilm(filmMapper.toEntity(film));
         log.info("Film updated successfully: {}", updated);
-        return updated;
+        return filmMapper.toDto(updated);
     }
 
-    public Film removeFilm(Id id) {
+    public FilmDto removeFilm(Id id) {
         log.info("Attempting to remove film with id {}", id);
         Film removed = filmStorage.removeFilm(id);
         log.info("Film removed successfully: {}", removed);
-        return removed;
+        return filmMapper.toDto(removed);
     }
 
-    public List<Film> getAllFilms() {
+    public List<FilmDto> getAllFilms() {
         log.debug("Request to get all films");
         List<Film> films = filmStorage.getAllFilms();
         log.info("Returning {} films", films.size());
-        return films;
+        return filmMapper.toDto(films);
     }
 
-    public Film getFilmById(Id id) {
+    public FilmDto getFilmById(Id id) {
         log.debug("Request to get film by id {}", id);
         Film film = filmStorage.getFilmById(id);
         log.info("Found film by id {}: {}", id, film);
-        return film;
+        return filmMapper.toDto(film);
     }
 }

@@ -7,13 +7,13 @@ import ru.yandex.practicum.filmorate.model.Id;
 import java.util.List;
 
 public interface FilmStorage {
-    public Film addFilm(Film film);
+    Film addFilm(Film film);
 
-    public Film updateFilm(Film film) throws NotFoundException;
+    Film updateFilm(Film film) throws NotFoundException;
 
-    public Film removeFilm(Id id) throws NotFoundException;
+    Film removeFilm(Id id) throws NotFoundException;
 
-    public List<Film> getAllFilms();
+    List<Film> getAllFilms();
 
-    public Film getFilmById(Id id) throws NotFoundException;
+    Film getFilmById(Id id) throws NotFoundException;
 }

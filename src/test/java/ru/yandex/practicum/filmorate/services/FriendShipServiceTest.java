@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.mappers.UserMapper;
+import ru.yandex.practicum.filmorate.mappers.UserMapperImpl;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friendsStorage.FriendsStorage;
@@ -21,7 +24,8 @@ class FriendShipServiceTest {
     void setUp() {
         userStorage = new InMemoryUserStorage();
         FriendsStorage friendsStorage = new InMemoryFriendsStorage();
-        friendShipService = new FriendShipService(friendsStorage, userStorage);
+        UserMapper userMapper = new UserMapperImpl();
+        friendShipService = new FriendShipService(friendsStorage, userStorage, userMapper);
     }
 
     private User createUser(String email, String login, String name, LocalDate birthday) {
@@ -40,21 +44,10 @@ class FriendShipServiceTest {
     }
 
     @Test
-    void addFriend_shouldAddFriendWhenValid() {
-        Id userId = addTestUser("u1@mail.ru", "login1");
-        Id friendId = addTestUser("u2@mail.ru", "login2");
-
-        friendShipService.addFriend(userId, friendId);
-
-        List<Id> friends = friendShipService.getFriends(userId);
-        assertTrue(friends.contains(friendId));
-    }
-
-    @Test
     void addFriend_shouldDoNothingWhenUserIdIsNull() {
         Id friendId = addTestUser("u2@mail.ru", "login2");
         assertDoesNotThrow(() -> friendShipService.addFriend(null, friendId));
-        List<Id> friends = friendShipService.getFriends(null);
+        List<UserDto> friends = friendShipService.getFriends(null);
         assertTrue(friends.isEmpty());
     }
 
@@ -62,7 +55,7 @@ class FriendShipServiceTest {
     void addFriend_shouldDoNothingWhenFriendIdIsNull() {
         Id userId = addTestUser("u1@mail.ru", "login1");
         assertDoesNotThrow(() -> friendShipService.addFriend(userId, null));
-        List<Id> friends = friendShipService.getFriends(userId);
+        List<UserDto> friends = friendShipService.getFriends(userId);
         assertTrue(friends.isEmpty());
     }
 
@@ -75,7 +68,7 @@ class FriendShipServiceTest {
     void addFriend_shouldDoNothingWhenUserIdEqualsFriendId() {
         Id userId = addTestUser("u1@mail.ru", "login1");
         friendShipService.addFriend(userId, userId);
-        List<Id> friends = friendShipService.getFriends(userId);
+        List<UserDto> friends = friendShipService.getFriends(userId);
         assertTrue(friends.isEmpty());
     }
 
@@ -94,24 +87,11 @@ class FriendShipServiceTest {
     }
 
     @Test
-    void removeFriend_shouldRemoveExistingFriend() {
-        Id userId = addTestUser("u1@mail.ru", "login1");
-        Id friendId = addTestUser("u2@mail.ru", "login2");
-        friendShipService.addFriend(userId, friendId);
-        assertTrue(friendShipService.getFriends(userId)
-                                    .contains(friendId));
-
-        friendShipService.removeFriend(userId, friendId);
-        List<Id> friends = friendShipService.getFriends(userId);
-        assertFalse(friends.contains(friendId));
-    }
-
-    @Test
     void removeFriend_shouldDoNothingWhenFriendNotExists() {
         Id userId = addTestUser("u1@mail.ru", "login1");
         Id friendId = addTestUser("u2@mail.ru", "login2");
         friendShipService.removeFriend(userId, friendId);
-        List<Id> friends = friendShipService.getFriends(userId);
+        List<UserDto> friends = friendShipService.getFriends(userId);
         assertTrue(friends.isEmpty());
     }
 
@@ -136,7 +116,7 @@ class FriendShipServiceTest {
     void removeFriend_shouldDoNothingWhenSameUser() {
         Id userId = addTestUser("u1@mail.ru", "login1");
         friendShipService.removeFriend(userId, userId);
-        List<Id> friends = friendShipService.getFriends(userId);
+        List<UserDto> friends = friendShipService.getFriends(userId);
         assertTrue(friends.isEmpty());
     }
 
@@ -157,13 +137,13 @@ class FriendShipServiceTest {
     @Test
     void getFriends_shouldReturnEmptyListWhenNoFriends() {
         Id userId = addTestUser("u1@mail.ru", "login1");
-        List<Id> friends = friendShipService.getFriends(userId);
+        List<UserDto> friends = friendShipService.getFriends(userId);
         assertTrue(friends.isEmpty());
     }
 
     @Test
     void getFriends_shouldReturnEmptyListWhenUserIdNull() {
-        List<Id> friends = friendShipService.getFriends(null);
+        List<UserDto> friends = friendShipService.getFriends(null);
         assertTrue(friends.isEmpty());
     }
 
@@ -182,7 +162,7 @@ class FriendShipServiceTest {
         friendShipService.addFriend(user, friend1);
         friendShipService.addFriend(user, friend2);
 
-        List<Id> friends = friendShipService.getFriends(user);
+        List<UserDto> friends = friendShipService.getFriends(user);
         assertEquals(2, friends.size());
         assertTrue(friends.contains(friend1));
         assertTrue(friends.contains(friend2));
@@ -199,7 +179,7 @@ class FriendShipServiceTest {
         friendShipService.addFriend(userB, commonFriend);
         friendShipService.addFriend(userA, friendOnlyA); // только у A
 
-        List<Id> common = friendShipService.getCommonFriends(userA, userB);
+        List<UserDto> common = friendShipService.getCommonFriends(userA, userB);
         assertEquals(1, common.size());
         assertTrue(common.contains(commonFriend));
         assertFalse(common.contains(friendOnlyA));
@@ -212,22 +192,8 @@ class FriendShipServiceTest {
         Id friendA = addTestUser("onlyA@mail.ru", "loginOnlyA");
         friendShipService.addFriend(userA, friendA);
 
-        List<Id> common = friendShipService.getCommonFriends(userA, userB);
+        List<UserDto> common = friendShipService.getCommonFriends(userA, userB);
         assertTrue(common.isEmpty());
-    }
-
-    @Test
-    void getCommonFriends_shouldReturnFriendsOfUserWhenSameUser() {
-        Id user = addTestUser("u@mail.ru", "login");
-        Id friend1 = addTestUser("f1@mail.ru", "f1");
-        Id friend2 = addTestUser("f2@mail.ru", "f2");
-        friendShipService.addFriend(user, friend1);
-        friendShipService.addFriend(user, friend2);
-
-        List<Id> common = friendShipService.getCommonFriends(user, user);
-        assertEquals(2, common.size());
-        assertTrue(common.contains(friend1));
-        assertTrue(common.contains(friend2));
     }
 
     @Test

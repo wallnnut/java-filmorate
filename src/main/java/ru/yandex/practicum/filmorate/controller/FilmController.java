@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.mappers.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
@@ -19,37 +17,36 @@ import java.util.List;
 @RequestMapping("/films")
 public class FilmController {
     private final FilmService filmService;
-    private final FilmMapper filmMapper;
     private final FilmRatingService filmRatingService;
 
     @PostMapping
-    public Film addFilm(@RequestBody @Valid FilmDto film) {
+    public FilmDto addFilm(@RequestBody @Valid FilmDto film) {
         log.info("Received request to add film: {}", film);
-        Film createdFilm = filmService.addFilm(filmMapper.toEntity(film));
+        FilmDto createdFilm = filmService.addFilm(film);
         log.info("Film added successfully with id: {}", createdFilm.getId());
         return createdFilm;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody FilmDto film) {
+    public FilmDto updateFilm(@RequestBody FilmDto film) {
         log.info("Received request to update film: {}", film);
-        Film updatedFilm = filmService.updateFilm(filmMapper.toEntity(film));
+        FilmDto updatedFilm = filmService.updateFilm(film);
         log.info("Film updated successfully with id: {}", updatedFilm.getId());
         return updatedFilm;
     }
 
     @GetMapping
-    public List<Film> getAllFilms() {
+    public List<FilmDto> getAllFilms() {
         log.info("Received request to get all films");
-        List<Film> films = filmService.getAllFilms();
+        List<FilmDto> films = filmService.getAllFilms();
         log.info("Returning {} films", films.size());
         return films;
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable Id id) {
+    public FilmDto getFilmById(@PathVariable Id id) {
         log.info("Received request to get film by id: {}", id);
-        Film film = filmService.getFilmById(id);
+        FilmDto film = filmService.getFilmById(id);
         log.info("Found film: {}", film);
         return film;
     }
@@ -69,12 +66,9 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(required = false, defaultValue = "10") int count) {
+    public List<FilmDto> getPopularFilms(@RequestParam(required = false, defaultValue = "10") int count) {
         log.info("Received request to get popular films with count = {}", count);
-        List<Id> popularIds = filmRatingService.getMostPopular(count);
-        List<Film> popularFilms = popularIds.stream()
-                                            .map(filmService::getFilmById)
-                                            .toList();
+        List<FilmDto> popularFilms = filmRatingService.getMostPopular(count);
         log.info("Returning {} popular films", popularFilms.size());
         return popularFilms;
     }

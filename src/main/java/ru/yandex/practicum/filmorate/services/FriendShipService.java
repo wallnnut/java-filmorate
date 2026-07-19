@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.mappers.UserMapper;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friendsStorage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
@@ -16,6 +19,7 @@ import java.util.List;
 public class FriendShipService {
     private final FriendsStorage friendsStorage;
     private final UserStorage userStorage;
+    private final UserMapper userMapper;
 
     public void addFriend(Id userId, Id friendId) {
         log.info("Adding friend: user {} -> friend {}", userId, friendId);
@@ -51,20 +55,21 @@ public class FriendShipService {
         log.info("Friendship between {} and {} successfully removed", userId, friendId);
     }
 
-    public List<Id> getFriends(Id userId) {
+    public List<UserDto> getFriends(Id userId) {
         log.info("Request to get friends of user {}", userId);
         if (userId == null) {
             log.warn("getFriends called with null userId");
             return Collections.emptyList();
         }
         userStorage.getUserById(userId);
-        List<Id> friends = friendsStorage.getFriendIds(userId);
-        log.info("User {} has {} friends", userId, friends.size());
-        log.debug("Friends list: {}", friends);
-        return friends;
+        List<Id> friendsIds = friendsStorage.getFriendIds(userId);
+        List<User> friendsList = userStorage.getUserByIds(friendsIds);
+        log.info("User {} has {} friends", userId, friendsIds.size());
+        log.debug("Friends list: {}", friendsIds);
+        return userMapper.toDto(friendsList);
     }
 
-    public List<Id> getCommonFriends(Id userAId, Id userBId) {
+    public List<UserDto> getCommonFriends(Id userAId, Id userBId) {
         log.info("Request to get common friends of users {} and {}", userAId, userBId);
         if (userAId == null || userBId == null) {
             log.warn("getCommonFriends called with null id(s)");
@@ -77,8 +82,9 @@ public class FriendShipService {
             return getFriends(userAId);
         }
         List<Id> common = friendsStorage.getCommonFriends(userAId, userBId);
+        List<User> commonUsers = userStorage.getUserByIds(common);
         log.info("Found {} common friends between {} and {}", common.size(), userAId, userBId);
         log.debug("Common friends list: {}", common);
-        return common;
+        return userMapper.toDto(commonUsers);
     }
 }

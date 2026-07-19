@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.mappers.FilmMapper;
+import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
@@ -22,11 +25,12 @@ class FilmServiceTest {
     @BeforeEach
     void setUp() {
         FilmStorage filmStorage = new InMemoryFilmStorageSet();
-        filmService = new FilmService(filmStorage);
+        FilmMapper filmMapper = new FilmMapperImpl();
+        filmService = new FilmService(filmStorage, filmMapper);
     }
 
-    private Film createFilm(String name, String description, LocalDate releaseDate, int duration) {
-        Film film = new Film();
+    private FilmDto createFilm(String name, String description, LocalDate releaseDate, int duration) {
+        FilmDto film = new FilmDto();
         film.setName(name);
         film.setDescription(description);
         film.setReleaseDate(releaseDate);
@@ -36,46 +40,46 @@ class FilmServiceTest {
 
     @Test
     void addFilm_shouldSaveAndReturnFilmWithGeneratedId() {
-        Film film = createFilm("Inception", "Dream within a dream",
+        FilmDto film = createFilm("Inception", "Dream within a dream",
                 LocalDate.of(2010, 7, 16), 148);
-        Film saved = filmService.addFilm(film);
+        FilmDto saved = filmService.addFilm(film);
 
         assertNotNull(saved.getId());
         assertEquals("Inception", saved.getName());
         assertEquals(1L, saved.getId()
                               .getId());
 
-        Film fromStorage = filmService.getFilmById(new Id(1L));
+        FilmDto fromStorage = filmService.getFilmById(new Id(1L));
         assertEquals(saved, fromStorage);
     }
 
     @Test
     void updateFilm_shouldUpdateExistingFilm() {
-        Film original = createFilm("Original", "Desc", LocalDate.now(), 100);
-        Film saved = filmService.addFilm(original);
+        FilmDto original = createFilm("Original", "Desc", LocalDate.now(), 100);
+        FilmDto saved = filmService.addFilm(original);
 
-        Film updatedFilm = new Film();
+        FilmDto updatedFilm = new FilmDto();
         updatedFilm.setId(saved.getId());
         updatedFilm.setName("Updated");
         updatedFilm.setDescription("New desc");
         updatedFilm.setReleaseDate(LocalDate.of(2020, 1, 1));
         updatedFilm.setDuration(120);
 
-        Film updated = filmService.updateFilm(updatedFilm);
+        FilmDto updated = filmService.updateFilm(updatedFilm);
 
         assertEquals(saved.getId(), updated.getId());
         assertEquals("Updated", updated.getName());
         assertEquals("New desc", updated.getDescription());
         assertEquals(120, updated.getDuration());
 
-        Film fromStorage = filmService.getFilmById(new Id(saved.getId()
-                                                               .getId()));
+        FilmDto fromStorage = filmService.getFilmById(new Id(saved.getId()
+                                                                  .getId()));
         assertEquals(updated, fromStorage);
     }
 
     @Test
     void updateFilm_shouldThrowIfFilmNotFound() {
-        Film film = new Film();
+        FilmDto film = new FilmDto();
         film.setId(new Id(999L));
         film.setName("Ghost");
         film.setDescription("Not exists");
@@ -86,12 +90,12 @@ class FilmServiceTest {
 
     @Test
     void removeFilm_shouldRemoveAndReturnFilm() {
-        Film film = createFilm("To Delete", "Will be removed", LocalDate.now(), 80);
-        Film saved = filmService.addFilm(film);
+        FilmDto film = createFilm("To Delete", "Will be removed", LocalDate.now(), 80);
+        FilmDto saved = filmService.addFilm(film);
 
         Id id = new Id(saved.getId()
                             .getId());
-        Film removed = filmService.removeFilm(id);
+        FilmDto removed = filmService.removeFilm(id);
 
         assertEquals(saved, removed);
         assertThrows(RuntimeException.class, () -> filmService.getFilmById(id));
@@ -105,13 +109,13 @@ class FilmServiceTest {
 
     @Test
     void getAllFilms_shouldReturnAllAddedFilms() {
-        Film film1 = createFilm("Film A", "A", LocalDate.now(), 100);
-        Film film2 = createFilm("Film B", "B", LocalDate.now(), 110);
+        FilmDto film1 = createFilm("Film A", "A", LocalDate.now(), 100);
+        FilmDto film2 = createFilm("Film B", "B", LocalDate.now(), 110);
 
         filmService.addFilm(film1);
         filmService.addFilm(film2);
 
-        List<Film> all = filmService.getAllFilms();
+        List<FilmDto> all = filmService.getAllFilms();
         assertEquals(2, all.size());
         assertTrue(all.stream()
                       .anyMatch(f -> "Film A".equals(f.getName())));
@@ -121,11 +125,11 @@ class FilmServiceTest {
 
     @Test
     void getFilmById_shouldReturnCorrectFilm() {
-        Film film = createFilm("Target", "Find me", LocalDate.now(), 95);
-        Film saved = filmService.addFilm(film);
+        FilmDto film = createFilm("Target", "Find me", LocalDate.now(), 95);
+        FilmDto saved = filmService.addFilm(film);
 
-        Film found = filmService.getFilmById(new Id(saved.getId()
-                                                         .getId()));
+        FilmDto found = filmService.getFilmById(new Id(saved.getId()
+                                                            .getId()));
         assertEquals(saved, found);
     }
 
@@ -137,10 +141,10 @@ class FilmServiceTest {
 
     @Test
     void addFilm_shouldIncrementIdSequentially() {
-        Film f1 = createFilm("One", "", LocalDate.now(), 1);
-        Film f2 = createFilm("Two", "", LocalDate.now(), 2);
-        Film saved1 = filmService.addFilm(f1);
-        Film saved2 = filmService.addFilm(f2);
+        FilmDto f1 = createFilm("One", "", LocalDate.now(), 1);
+        FilmDto f2 = createFilm("Two", "", LocalDate.now(), 2);
+        FilmDto saved1 = filmService.addFilm(f1);
+        FilmDto saved2 = filmService.addFilm(f2);
         assertEquals(1L, saved1.getId()
                                .getId());
         assertEquals(2L, saved2.getId()

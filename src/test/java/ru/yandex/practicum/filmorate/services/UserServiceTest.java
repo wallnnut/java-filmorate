@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.mappers.UserMapper;
+import ru.yandex.practicum.filmorate.mappers.UserMapperImpl;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
@@ -21,11 +24,12 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         UserStorage userStorage = new InMemoryUserStorageSet();
-        userService = new UserService(userStorage);
+        UserMapper userMapper = new UserMapperImpl();
+        userService = new UserService(userStorage, userMapper);
     }
 
-    private User createUser(String email, String login, String name, LocalDate birthday) {
-        User user = new User();
+    private UserDto createUser(String email, String login, String name, LocalDate birthday) {
+        UserDto user = new UserDto();
         user.setEmail(email);
         user.setLogin(login);
         user.setName(name);
@@ -35,31 +39,31 @@ class UserServiceTest {
 
     @Test
     void addUser_shouldSaveAndReturnUserWithGeneratedId() {
-        User user = createUser("user@mail.ru", "login1", "Name", LocalDate.of(1990, 1, 1));
-        User saved = userService.addUser(user);
+        UserDto user = createUser("user@mail.ru", "login1", "Name", LocalDate.of(1990, 1, 1));
+        UserDto saved = userService.addUser(user);
 
         assertNotNull(saved.getId());
         assertEquals("user@mail.ru", saved.getEmail());
         assertEquals(1L, saved.getId()
                               .getId());
 
-        User fromStorage = userService.getUserById(new Id(1L));
+        UserDto fromStorage = userService.getUserById(new Id(1L));
         assertEquals(saved, fromStorage);
     }
 
     @Test
     void updateUser_shouldUpdateExistingUser() {
-        User original = createUser("old@mail.ru", "oldLogin", "OldName", LocalDate.of(1990, 1, 1));
-        User saved = userService.addUser(original);
+        UserDto original = createUser("old@mail.ru", "oldLogin", "OldName", LocalDate.of(1990, 1, 1));
+        UserDto saved = userService.addUser(original);
 
-        User updatedUser = new User();
+        UserDto updatedUser = new UserDto();
         updatedUser.setId(saved.getId());
         updatedUser.setEmail("new@mail.ru");
         updatedUser.setLogin("newLogin");
         updatedUser.setName("NewName");
         updatedUser.setBirthday(LocalDate.of(2000, 2, 2));
 
-        User updated = userService.updateUser(updatedUser);
+        UserDto updated = userService.updateUser(updatedUser);
 
         assertEquals(saved.getId(), updated.getId());
         assertEquals("new@mail.ru", updated.getEmail());
@@ -67,14 +71,14 @@ class UserServiceTest {
         assertEquals("NewName", updated.getName());
         assertEquals(LocalDate.of(2000, 2, 2), updated.getBirthday());
 
-        User fromStorage = userService.getUserById(new Id(saved.getId()
-                                                               .getId()));
+        UserDto fromStorage = userService.getUserById(new Id(saved.getId()
+                                                                  .getId()));
         assertEquals(updated, fromStorage);
     }
 
     @Test
     void updateUser_shouldThrowIfUserNotFound() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setId(new Id(999L));
         user.setEmail("missing@mail.ru");
         user.setLogin("missing");
@@ -86,12 +90,12 @@ class UserServiceTest {
 
     @Test
     void removeUser_shouldRemoveAndReturnUser() {
-        User user = createUser("delete@mail.ru", "deleteLogin", "Delete", LocalDate.of(1995, 5, 5));
-        User saved = userService.addUser(user);
+        UserDto user = createUser("delete@mail.ru", "deleteLogin", "Delete", LocalDate.of(1995, 5, 5));
+        UserDto saved = userService.addUser(user);
 
         Id id = new Id(saved.getId()
                             .getId());
-        User removed = userService.removeUser(id);
+        UserDto removed = userService.removeUser(id);
 
         assertEquals(saved, removed);
         assertThrows(RuntimeException.class, () -> userService.getUserById(id));
@@ -105,13 +109,13 @@ class UserServiceTest {
 
     @Test
     void getAllUsers_shouldReturnAllAddedUsers() {
-        User user1 = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
-        User user2 = createUser("u2@mail.ru", "login2", "Name2", LocalDate.of(1991, 2, 2));
+        UserDto user1 = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
+        UserDto user2 = createUser("u2@mail.ru", "login2", "Name2", LocalDate.of(1991, 2, 2));
 
         userService.addUser(user1);
         userService.addUser(user2);
 
-        List<User> all = userService.getAllUsers();
+        List<UserDto> all = userService.getAllUsers();
         assertEquals(2, all.size());
         assertTrue(all.stream()
                       .anyMatch(u -> "login1".equals(u.getLogin())));
@@ -121,11 +125,11 @@ class UserServiceTest {
 
     @Test
     void getUserById_shouldReturnCorrectUser() {
-        User user = createUser("target@mail.ru", "targetLogin", "Target", LocalDate.of(2000, 1, 1));
-        User saved = userService.addUser(user);
+        UserDto user = createUser("target@mail.ru", "targetLogin", "Target", LocalDate.of(2000, 1, 1));
+        UserDto saved = userService.addUser(user);
 
-        User found = userService.getUserById(new Id(saved.getId()
-                                                         .getId()));
+        UserDto found = userService.getUserById(new Id(saved.getId()
+                                                            .getId()));
         assertEquals(saved, found);
     }
 
@@ -137,13 +141,13 @@ class UserServiceTest {
 
     @Test
     void getUserByIds_shouldReturnUsersForGivenIds() {
-        User user1 = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
-        User user2 = createUser("u2@mail.ru", "login2", "Name2", LocalDate.of(1991, 2, 2));
-        User user3 = createUser("u3@mail.ru", "login3", "Name3", LocalDate.of(1992, 3, 3));
+        UserDto user1 = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
+        UserDto user2 = createUser("u2@mail.ru", "login2", "Name2", LocalDate.of(1991, 2, 2));
+        UserDto user3 = createUser("u3@mail.ru", "login3", "Name3", LocalDate.of(1992, 3, 3));
 
-        User saved1 = userService.addUser(user1);
-        User saved2 = userService.addUser(user2);
-        User saved3 = userService.addUser(user3);
+        UserDto saved1 = userService.addUser(user1);
+        UserDto saved2 = userService.addUser(user2);
+        UserDto saved3 = userService.addUser(user3);
 
         List<Id> ids = List.of(
                 new Id(saved1.getId()
@@ -152,7 +156,7 @@ class UserServiceTest {
                              .getId())
         );
 
-        List<User> found = userService.getUserByIds(ids);
+        List<UserDto> found = userService.getUserByIds(ids);
         assertEquals(2, found.size());
         assertTrue(found.contains(saved1));
         assertTrue(found.contains(saved3));
@@ -161,8 +165,8 @@ class UserServiceTest {
 
     @Test
     void getUserByIds_shouldThrowIfAnyIdNotFound() {
-        User user = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
-        User saved = userService.addUser(user);
+        UserDto user = createUser("u1@mail.ru", "login1", "Name1", LocalDate.of(1990, 1, 1));
+        UserDto saved = userService.addUser(user);
 
         List<Id> ids = List.of(
                 new Id(saved.getId()
@@ -175,10 +179,10 @@ class UserServiceTest {
 
     @Test
     void addUser_shouldIncrementIdSequentially() {
-        User u1 = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User u2 = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
-        User saved1 = userService.addUser(u1);
-        User saved2 = userService.addUser(u2);
+        UserDto u1 = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto u2 = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto saved1 = userService.addUser(u1);
+        UserDto saved2 = userService.addUser(u2);
         assertEquals(1L, saved1.getId()
                                .getId());
         assertEquals(2L, saved2.getId()

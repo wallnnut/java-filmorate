@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.mappers.UserMapper;
+import ru.yandex.practicum.filmorate.mappers.UserMapperImpl;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.services.FriendShipService;
@@ -24,14 +25,14 @@ class UserControllerTest {
     void setUp() {
         UserStorage userStorage = new InMemoryUserStorage();
         FriendsStorage friendsStorage = new InMemoryFriendsStorage();
-        UserMapper userMapper = new SimpleUserMapper();
+        UserMapper userMapper = new UserMapperImpl();
 
-        UserService userService = new UserService(userStorage);
-        FriendShipService friendShipService = new FriendShipService(friendsStorage, userStorage);
-        userController = new UserController(userService, userMapper, friendShipService);
+        UserService userService = new UserService(userStorage, userMapper);
+        FriendShipService friendShipService = new FriendShipService(friendsStorage, userStorage, userMapper);
+        userController = new UserController(userService, friendShipService);
     }
 
-    private User createUser(String email, String login, String name, LocalDate birthday) {
+    private UserDto createUser(String email, String login, String name, LocalDate birthday) {
         UserDto dto = new UserDto();
         dto.setEmail(email);
         dto.setLogin(login);
@@ -42,26 +43,26 @@ class UserControllerTest {
 
     @Test
     void createUser_shouldSaveAndReturnUser() {
-        User user = createUser("test@mail.ru", "testLogin", "Test Name", LocalDate.of(1990, 1, 1));
+        UserDto user = createUser("test@mail.ru", "testLogin", "Test Name", LocalDate.of(1990, 1, 1));
         assertNotNull(user.getId());
         assertEquals("test@mail.ru", user.getEmail());
         assertEquals("testLogin", user.getLogin());
         assertEquals("Test Name", user.getName());
         assertEquals(LocalDate.of(1990, 1, 1), user.getBirthday());
 
-        User found = userController.getUserById(user.getId());
+        UserDto found = userController.getUserById(user.getId());
         assertEquals(user, found);
     }
 
     @Test
     void createUser_shouldHandleNullName() {
-        User user = createUser("test@mail.ru", "testLogin", null, LocalDate.now());
+        UserDto user = createUser("test@mail.ru", "testLogin", null, LocalDate.now());
         assertNull(user.getName());
     }
 
     @Test
     void updateUser_shouldUpdateExistingUser() {
-        User created = createUser("old@mail.ru", "oldLogin", "Old", LocalDate.now());
+        UserDto created = createUser("old@mail.ru", "oldLogin", "Old", LocalDate.now());
         UserDto updateDto = new UserDto();
         updateDto.setId(created.getId());
         updateDto.setEmail("new@mail.ru");
@@ -69,14 +70,14 @@ class UserControllerTest {
         updateDto.setName("New");
         updateDto.setBirthday(LocalDate.of(2000, 1, 1));
 
-        User updated = userController.updateUser(updateDto);
+        UserDto updated = userController.updateUser(updateDto);
         assertEquals(created.getId(), updated.getId());
         assertEquals("new@mail.ru", updated.getEmail());
         assertEquals("newLogin", updated.getLogin());
         assertEquals("New", updated.getName());
         assertEquals(LocalDate.of(2000, 1, 1), updated.getBirthday());
 
-        User fromStorage = userController.getUserById(created.getId());
+        UserDto fromStorage = userController.getUserById(created.getId());
         assertEquals(updated, fromStorage);
     }
 
@@ -90,10 +91,10 @@ class UserControllerTest {
 
     @Test
     void getAllUsers_shouldReturnAll() {
-        User u1 = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User u2 = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto u1 = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto u2 = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
 
-        List<User> all = userController.getAllUsers();
+        List<UserDto> all = userController.getAllUsers();
         assertEquals(2, all.size());
         assertTrue(all.contains(u1));
         assertTrue(all.contains(u2));
@@ -101,14 +102,14 @@ class UserControllerTest {
 
     @Test
     void getAllUsers_shouldReturnEmptyListWhenNoUsers() {
-        List<User> all = userController.getAllUsers();
+        List<UserDto> all = userController.getAllUsers();
         assertTrue(all.isEmpty());
     }
 
     @Test
     void getUserById_shouldReturnUser() {
-        User created = createUser("test@mail.ru", "login", "Name", LocalDate.now());
-        User found = userController.getUserById(created.getId());
+        UserDto created = createUser("test@mail.ru", "login", "Name", LocalDate.now());
+        UserDto found = userController.getUserById(created.getId());
         assertEquals(created, found);
     }
 
@@ -119,45 +120,45 @@ class UserControllerTest {
 
     @Test
     void addFriend_shouldAddFriend() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
 
         userController.addFriend(user.getId(), friend.getId());
 
-        List<User> friends = userController.getFriends(user.getId());
+        List<UserDto> friends = userController.getFriends(user.getId());
         assertEquals(1, friends.size());
         assertEquals(friend, friends.get(0));
     }
 
     @Test
     void addFriend_shouldThrowIfUserNotFound() {
-        User friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.addFriend(new Id(999L), friend.getId()));
     }
 
     @Test
     void addFriend_shouldThrowIfFriendNotFound() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.addFriend(user.getId(), new Id(999L)));
     }
 
     @Test
     void removeFriend_shouldRemoveExistingFriend() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
         userController.addFriend(user.getId(), friend.getId());
         assertFalse(userController.getFriends(user.getId())
                                   .isEmpty());
 
         userController.removeFriend(user.getId(), friend.getId());
-        List<User> friends = userController.getFriends(user.getId());
+        List<UserDto> friends = userController.getFriends(user.getId());
         assertTrue(friends.isEmpty());
     }
 
     @Test
     void removeFriend_shouldDoNothingIfFriendNotExists() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
         userController.removeFriend(user.getId(), friend.getId());
         assertTrue(userController.getFriends(user.getId())
                                  .isEmpty());
@@ -165,26 +166,26 @@ class UserControllerTest {
 
     @Test
     void removeFriend_shouldThrowIfUserNotFound() {
-        User friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
+        UserDto friend = createUser("u2@mail.ru", "l2", "N2", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.removeFriend(new Id(999L), friend.getId()));
     }
 
     @Test
     void removeFriend_shouldThrowIfFriendNotFound() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.removeFriend(user.getId(), new Id(999L)));
     }
 
     @Test
     void getFriends_shouldReturnAllFriends() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        User f1 = createUser("f1@mail.ru", "fl1", "FN1", LocalDate.now());
-        User f2 = createUser("f2@mail.ru", "fl2", "FN2", LocalDate.now());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        UserDto f1 = createUser("f1@mail.ru", "fl1", "FN1", LocalDate.now());
+        UserDto f2 = createUser("f2@mail.ru", "fl2", "FN2", LocalDate.now());
 
         userController.addFriend(user.getId(), f1.getId());
         userController.addFriend(user.getId(), f2.getId());
 
-        List<User> friends = userController.getFriends(user.getId());
+        List<UserDto> friends = userController.getFriends(user.getId());
         assertEquals(2, friends.size());
         assertTrue(friends.contains(f1));
         assertTrue(friends.contains(f2));
@@ -192,8 +193,8 @@ class UserControllerTest {
 
     @Test
     void getFriends_shouldReturnEmptyListWhenNoFriends() {
-        User user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
-        List<User> friends = userController.getFriends(user.getId());
+        UserDto user = createUser("u1@mail.ru", "l1", "N1", LocalDate.now());
+        List<UserDto> friends = userController.getFriends(user.getId());
         assertTrue(friends.isEmpty());
     }
 
@@ -204,40 +205,40 @@ class UserControllerTest {
 
     @Test
     void getCommonFriends_shouldReturnCommonFriends() {
-        User userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
-        User userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
-        User common = createUser("common@mail.ru", "lc", "NC", LocalDate.now());
-        User onlyA = createUser("onlyA@mail.ru", "loA", "NOA", LocalDate.now());
+        UserDto userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
+        UserDto userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
+        UserDto common = createUser("common@mail.ru", "lc", "NC", LocalDate.now());
+        UserDto onlyA = createUser("onlyA@mail.ru", "loA", "NOA", LocalDate.now());
 
         userController.addFriend(userA.getId(), common.getId());
         userController.addFriend(userB.getId(), common.getId());
         userController.addFriend(userA.getId(), onlyA.getId());
 
-        List<User> commonFriends = userController.getCommonFriends(userA.getId(), userB.getId());
+        List<UserDto> commonFriends = userController.getCommonFriends(userA.getId(), userB.getId());
         assertEquals(1, commonFriends.size());
         assertEquals(common, commonFriends.get(0));
     }
 
     @Test
     void getCommonFriends_shouldReturnEmptyListWhenNoCommon() {
-        User userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
-        User userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
-        User onlyA = createUser("onlyA@mail.ru", "loA", "NOA", LocalDate.now());
+        UserDto userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
+        UserDto userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
+        UserDto onlyA = createUser("onlyA@mail.ru", "loA", "NOA", LocalDate.now());
         userController.addFriend(userA.getId(), onlyA.getId());
 
-        List<User> commonFriends = userController.getCommonFriends(userA.getId(), userB.getId());
+        List<UserDto> commonFriends = userController.getCommonFriends(userA.getId(), userB.getId());
         assertTrue(commonFriends.isEmpty());
     }
 
     @Test
     void getCommonFriends_shouldReturnFriendsOfUserWhenSameId() {
-        User user = createUser("u@mail.ru", "l", "N", LocalDate.now());
-        User f1 = createUser("f1@mail.ru", "lf1", "NF1", LocalDate.now());
-        User f2 = createUser("f2@mail.ru", "lf2", "NF2", LocalDate.now());
+        UserDto user = createUser("u@mail.ru", "l", "N", LocalDate.now());
+        UserDto f1 = createUser("f1@mail.ru", "lf1", "NF1", LocalDate.now());
+        UserDto f2 = createUser("f2@mail.ru", "lf2", "NF2", LocalDate.now());
         userController.addFriend(user.getId(), f1.getId());
         userController.addFriend(user.getId(), f2.getId());
 
-        List<User> common = userController.getCommonFriends(user.getId(), user.getId());
+        List<UserDto> common = userController.getCommonFriends(user.getId(), user.getId());
         assertEquals(2, common.size());
         assertTrue(common.contains(f1));
         assertTrue(common.contains(f2));
@@ -245,40 +246,14 @@ class UserControllerTest {
 
     @Test
     void getCommonFriends_shouldThrowIfUserANotFound() {
-        User userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
+        UserDto userB = createUser("b@mail.ru", "lb", "NB", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.getCommonFriends(new Id(999L), userB.getId()));
     }
 
     @Test
     void getCommonFriends_shouldThrowIfUserBNotFound() {
-        User userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
+        UserDto userA = createUser("a@mail.ru", "la", "NA", LocalDate.now());
         assertThrows(RuntimeException.class, () -> userController.getCommonFriends(userA.getId(), new Id(999L)));
-    }
-
-    private static class SimpleUserMapper implements UserMapper {
-        @Override
-        public User toEntity(UserDto dto) {
-            if (dto == null) return null;
-            User user = new User();
-            user.setId(dto.getId());
-            user.setEmail(dto.getEmail());
-            user.setLogin(dto.getLogin());
-            user.setName(dto.getName());
-            user.setBirthday(dto.getBirthday());
-            return user;
-        }
-
-        @Override
-        public UserDto toDto(User user) {
-            if (user == null) return null;
-            UserDto dto = new UserDto();
-            dto.setId(user.getId());
-            dto.setEmail(user.getEmail());
-            dto.setLogin(user.getLogin());
-            dto.setName(user.getName());
-            dto.setBirthday(user.getBirthday());
-            return dto;
-        }
     }
 
     private static class InMemoryUserStorage implements UserStorage {

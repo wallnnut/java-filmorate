@@ -21,7 +21,7 @@ public class FilmDto {
     private String description;
 
     @NotNull
-    @ValidReleaseDate(message = "Дата релиза не может быть раньше 28 декабря 1895 года")
+    @ValidReleaseDate
     private LocalDate releaseDate;
 
     @Positive(message = "Продолжительность должна быть положительным числом")
