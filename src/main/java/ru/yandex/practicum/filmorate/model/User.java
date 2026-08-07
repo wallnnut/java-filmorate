@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
 @Data
-public class User {
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+public class User extends BaseEntity {
     private String email;
     private String login;
     private String name;
