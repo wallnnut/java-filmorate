@@ -28,7 +28,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public FilmDto updateFilm(@RequestBody FilmDto film) {
+    public FilmDto updateFilm(@RequestBody @Valid FilmDto film) {
         log.info("Received request to update film: {}", film);
         FilmDto updatedFilm = filmService.updateFilm(film);
         log.info("Film updated successfully with id: {}", updatedFilm.getId());
