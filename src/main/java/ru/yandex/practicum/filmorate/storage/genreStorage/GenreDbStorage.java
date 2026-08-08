@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
 
+import java.util.Collections;
 import java.util.List;
 
 @Primary
@@ -36,5 +37,21 @@ public class GenreDbStorage implements GenreStorage {
             throw new NotFoundException(String.format("Genre with id=%d not found", id.getId()));
         }
         return genres.getFirst();
+    }
+
+    @Override
+    public List<Genre> getByIds(List<Id> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = """
+                SELECT genre_id, name
+                FROM genre
+                WHERE genre_id IN (%s)
+                ORDER BY genre_id
+                """.formatted(placeholders);
+        Object[] args = ids.stream().map(Id::getId).toArray();
+        return jdbcTemplate.query(sql, genreRowMapper, args);
     }
 }

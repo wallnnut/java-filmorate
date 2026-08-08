@@ -9,4 +9,6 @@ public interface GenreStorage {
     List<Genre> getAll();
 
     Genre getById(Id id);
+
+    List<Genre> getByIds(List<Id> ids);
 }
