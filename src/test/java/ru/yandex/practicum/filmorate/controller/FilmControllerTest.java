@@ -17,9 +17,7 @@ import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmStorage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.genreStorage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpaStorage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.ratingStorage.InMemoryRatingStorage;
 import ru.yandex.practicum.filmorate.storage.ratingStorage.RatingStorage;
-import ru.yandex.practicum.filmorate.storage.userStorage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.time.LocalDate;
