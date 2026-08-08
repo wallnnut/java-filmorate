@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.storage.friendsStorage;
 
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Id;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-@Component
 public class InMemoryFriendsStorage implements FriendsStorage {
     private final Map<Id, Set<Id>> friendsMap = new HashMap<>();
 
@@ -15,9 +18,7 @@ public class InMemoryFriendsStorage implements FriendsStorage {
             return;
         }
         friendsMap.computeIfAbsent(userId, i -> new HashSet<>())
-                  .add(friendId);
-        friendsMap.computeIfAbsent(friendId, i -> new HashSet<>())
-                  .add(userId);
+                .add(friendId);
     }
 
     @Override
@@ -25,18 +26,11 @@ public class InMemoryFriendsStorage implements FriendsStorage {
         if (userId.equals(friendId)) {
             return;
         }
-        Set<Id> friendsA = friendsMap.get(userId);
-        if (friendsA != null) {
-            friendsA.remove(friendId);
-            if (friendsA.isEmpty()) {
+        Set<Id> friends = friendsMap.get(userId);
+        if (friends != null) {
+            friends.remove(friendId);
+            if (friends.isEmpty()) {
                 friendsMap.remove(userId);
-            }
-        }
-        Set<Id> friendsB = friendsMap.get(friendId);
-        if (friendsB != null) {
-            friendsB.remove(userId);
-            if (friendsB.isEmpty()) {
-                friendsMap.remove(friendId);
             }
         }
     }
@@ -44,8 +38,8 @@ public class InMemoryFriendsStorage implements FriendsStorage {
     @Override
     public List<Id> getFriendIds(Id userId) {
         return friendsMap.getOrDefault(userId, new HashSet<>())
-                         .stream()
-                         .toList();
+                .stream()
+                .toList();
     }
 
     @Override
@@ -56,6 +50,6 @@ public class InMemoryFriendsStorage implements FriendsStorage {
         Set<Id> common = new HashSet<>(friendsA);
         common.retainAll(friendsB);
         return common.stream()
-                     .toList();
+                .toList();
     }
 }
