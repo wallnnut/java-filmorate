@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.userStorage;
 
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
@@ -9,7 +8,6 @@ import ru.yandex.practicum.filmorate.storage.BaseStorage;
 
 import java.util.List;
 
-@Component
 @AllArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
     private final BaseStorage<User> userStorage = new BaseStorage<>();
