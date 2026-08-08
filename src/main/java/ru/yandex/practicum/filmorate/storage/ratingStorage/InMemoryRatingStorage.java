@@ -1,15 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.ratingStorage;
 
 
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Id;
 
 import java.util.*;
 
-@Component
-@AllArgsConstructor
 public class InMemoryRatingStorage implements RatingStorage {
     private final Map<Id, Set<Id>> filmLikes = new HashMap<>();
 
