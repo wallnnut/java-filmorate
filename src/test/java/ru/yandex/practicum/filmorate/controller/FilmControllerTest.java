@@ -7,11 +7,19 @@ import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
+import ru.yandex.practicum.filmorate.services.GenreService;
+import ru.yandex.practicum.filmorate.services.MpaService;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmStorage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.genreStorage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpaStorage.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.ratingStorage.InMemoryRatingStorage;
 import ru.yandex.practicum.filmorate.storage.ratingStorage.RatingStorage;
+import ru.yandex.practicum.filmorate.storage.userStorage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.time.LocalDate;
@@ -30,9 +38,44 @@ class FilmControllerTest {
         userStorage = new InMemoryUserStorage();
         RatingStorage ratingStorage = new InMemoryRatingStorage();
         FilmMapper filmMapper = new FilmMapperImpl();
-        FilmService filmService = new FilmService(filmStorage, filmMapper);
+        MpaService mpaService = new MpaService(stubMpaStorage());
+        GenreService genreService = new GenreService(stubGenreStorage());
+        FilmService filmService = new FilmService(filmStorage, filmMapper, mpaService, genreService);
         FilmRatingService filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage, filmMapper);
         filmController = new FilmController(filmService, filmRatingService);
+    }
+
+    private static MpaStorage stubMpaStorage() {
+        return new MpaStorage() {
+            @Override
+            public List<Mpa> getAll() {
+                return List.of();
+            }
+
+            @Override
+            public Mpa getById(Id id) {
+                return new Mpa(id, "G");
+            }
+        };
+    }
+
+    private static GenreStorage stubGenreStorage() {
+        return new GenreStorage() {
+            @Override
+            public List<Genre> getAll() {
+                return List.of();
+            }
+
+            @Override
+            public Genre getById(Id id) {
+                return new Genre(id, "stub");
+            }
+
+            @Override
+            public List<Genre> getByIds(List<Id> ids) {
+                return ids.stream().map(id -> new Genre(id, "stub")).toList();
+            }
+        };
     }
 
     private FilmDto createFilm(String name, String description, LocalDate releaseDate, int duration) {
@@ -41,6 +84,7 @@ class FilmControllerTest {
         dto.setDescription(description);
         dto.setReleaseDate(releaseDate);
         dto.setDuration(duration);
+        dto.setMpa(new Mpa(new Id(1), "G"));
         return filmController.addFilm(dto);
     }
 
@@ -77,6 +121,7 @@ class FilmControllerTest {
         updateDto.setDescription("New desc");
         updateDto.setReleaseDate(LocalDate.of(2020, 1, 1));
         updateDto.setDuration(120);
+        updateDto.setMpa(new Mpa(new Id(1), "G"));
 
         FilmDto updated = filmController.updateFilm(updateDto);
         assertEquals(created.getId(), updated.getId());
@@ -94,6 +139,7 @@ class FilmControllerTest {
         FilmDto dto = new FilmDto();
         dto.setId(new Id(999L));
         dto.setName("Ghost");
+        dto.setMpa(new Mpa(new Id(1), "G"));
         assertThrows(RuntimeException.class, () -> filmController.updateFilm(dto));
     }
 

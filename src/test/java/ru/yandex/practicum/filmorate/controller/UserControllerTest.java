@@ -57,7 +57,7 @@ class UserControllerTest {
     @Test
     void createUser_shouldHandleNullName() {
         UserDto user = createUser("test@mail.ru", "testLogin", null, LocalDate.now());
-        assertNull(user.getName());
+        assertEquals("testLogin", user.getName());
     }
 
     @Test

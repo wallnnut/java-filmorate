@@ -6,8 +6,12 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.genreStorage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpaStorage.MpaStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,7 +30,34 @@ class FilmServiceTest {
     void setUp() {
         FilmStorage filmStorage = new InMemoryFilmStorageSet();
         FilmMapper filmMapper = new FilmMapperImpl();
-        filmService = new FilmService(filmStorage, filmMapper);
+        MpaService mpaService = new MpaService(new MpaStorage() {
+            @Override
+            public List<Mpa> getAll() {
+                return List.of();
+            }
+
+            @Override
+            public Mpa getById(Id id) {
+                return new Mpa(id, "G");
+            }
+        });
+        GenreService genreService = new GenreService(new GenreStorage() {
+            @Override
+            public List<Genre> getAll() {
+                return List.of();
+            }
+
+            @Override
+            public Genre getById(Id id) {
+                return new Genre(id, "stub");
+            }
+
+            @Override
+            public List<Genre> getByIds(List<Id> ids) {
+                return ids.stream().map(id -> new Genre(id, "stub")).toList();
+            }
+        });
+        filmService = new FilmService(filmStorage, filmMapper, mpaService, genreService);
     }
 
     private FilmDto createFilm(String name, String description, LocalDate releaseDate, int duration) {
@@ -35,6 +66,7 @@ class FilmServiceTest {
         film.setDescription(description);
         film.setReleaseDate(releaseDate);
         film.setDuration(duration);
+        film.setMpa(new Mpa(new Id(1), "G"));
         return film;
     }
 
@@ -64,6 +96,7 @@ class FilmServiceTest {
         updatedFilm.setDescription("New desc");
         updatedFilm.setReleaseDate(LocalDate.of(2020, 1, 1));
         updatedFilm.setDuration(120);
+        updatedFilm.setMpa(new Mpa(new Id(1), "G"));
 
         FilmDto updated = filmService.updateFilm(updatedFilm);
 
@@ -85,6 +118,7 @@ class FilmServiceTest {
         film.setDescription("Not exists");
         film.setReleaseDate(LocalDate.now());
         film.setDuration(90);
+        film.setMpa(new Mpa(new Id(1), "G"));
         assertThrows(RuntimeException.class, () -> filmService.updateFilm(film));
     }
 
