@@ -13,5 +13,4 @@ public interface FilmMapper {
     Film toEntity(FilmDto filmDto);
 
     List<FilmDto> toDto(List<Film> films);
-
 }
