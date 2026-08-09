@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
 import ru.yandex.practicum.filmorate.services.FriendShipService;
+import ru.yandex.practicum.filmorate.services.UserService;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genreStorage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpaStorage.MpaStorage;
@@ -42,6 +43,7 @@ class FilmorateApplicationTest {
 
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final UserService userService;
     private final FilmService filmService;
     private final FilmMapper filmMapper;
     private final GenreStorage genreStorage;
@@ -112,6 +114,20 @@ class FilmorateApplicationTest {
                         "User1",
                         LocalDate.of(1982, 10, 8)
                 );
+    }
+
+    @Test
+    void shouldUseLoginAsNameWhenNameIsBlank() {
+        UserDto dto = new UserDto();
+        dto.setEmail("blank-name@test.ru");
+        dto.setLogin("blankNameLogin");
+        dto.setName("   ");
+        dto.setBirthday(LocalDate.of(1990, 1, 1));
+
+        UserDto created = userService.addUser(dto);
+
+        assertThat(created.getName()).isEqualTo("blankNameLogin");
+        assertThat(userStorage.getUserById(created.getId()).getName()).isEqualTo("blankNameLogin");
     }
 
     @Test
@@ -236,6 +252,26 @@ class FilmorateApplicationTest {
                 .first()
                 .extracting(FilmDto::getId)
                 .isEqualTo(createdFilm.getId());
+    }
+
+    @Test
+    void shouldThrowWhenLikeOrFriendUsesUnknownId() {
+        User createdUser = userStorage.addUser(user1);
+        Film createdFilm = filmStorage.addFilm(film1);
+        Id unknownId = new Id(999L);
+
+        assertThrows(NotFoundException.class,
+                () -> filmRatingService.putLike(unknownId, createdUser.getId()));
+        assertThrows(NotFoundException.class,
+                () -> filmRatingService.putLike(createdFilm.getId(), unknownId));
+        assertThrows(NotFoundException.class,
+                () -> filmRatingService.removeLike(unknownId, createdUser.getId()));
+        assertThrows(NotFoundException.class,
+                () -> friendShipService.addFriend(unknownId, createdUser.getId()));
+        assertThrows(NotFoundException.class,
+                () -> friendShipService.addFriend(createdUser.getId(), unknownId));
+        assertThrows(NotFoundException.class,
+                () -> friendShipService.getFriends(unknownId));
     }
 
     @Test
