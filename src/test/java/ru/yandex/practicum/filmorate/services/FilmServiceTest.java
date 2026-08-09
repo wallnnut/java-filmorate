@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
+import ru.yandex.practicum.filmorate.mappers.GenreMapper;
+import ru.yandex.practicum.filmorate.mappers.GenreMapperImpl;
+import ru.yandex.practicum.filmorate.mappers.MpaMapper;
+import ru.yandex.practicum.filmorate.mappers.MpaMapperImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
@@ -30,6 +34,8 @@ class FilmServiceTest {
     void setUp() {
         FilmStorage filmStorage = new InMemoryFilmStorageSet();
         FilmMapper filmMapper = new FilmMapperImpl();
+        MpaMapper mpaMapper = new MpaMapperImpl();
+        GenreMapper genreMapper = new GenreMapperImpl();
         MpaService mpaService = new MpaService(new MpaStorage() {
             @Override
             public List<Mpa> getAll() {
@@ -40,7 +46,7 @@ class FilmServiceTest {
             public Mpa getById(Id id) {
                 return new Mpa(id, "G");
             }
-        });
+        }, mpaMapper);
         GenreService genreService = new GenreService(new GenreStorage() {
             @Override
             public List<Genre> getAll() {
@@ -56,7 +62,7 @@ class FilmServiceTest {
             public List<Genre> getByIds(List<Id> ids) {
                 return ids.stream().map(id -> new Genre(id, "stub")).toList();
             }
-        });
+        }, genreMapper);
         filmService = new FilmService(filmStorage, filmMapper, mpaService, genreService);
     }
 

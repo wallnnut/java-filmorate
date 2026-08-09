@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmMapperImpl;
-import ru.yandex.practicum.filmorate.model.Id;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.mappers.GenreMapper;
+import ru.yandex.practicum.filmorate.mappers.GenreMapperImpl;
+import ru.yandex.practicum.filmorate.mappers.MpaMapper;
+import ru.yandex.practicum.filmorate.mappers.MpaMapperImpl;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
 import ru.yandex.practicum.filmorate.services.GenreService;
@@ -17,7 +18,9 @@ import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmStorage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.genreStorage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpaStorage.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.ratingStorage.InMemoryRatingStorage;
 import ru.yandex.practicum.filmorate.storage.ratingStorage.RatingStorage;
+import ru.yandex.practicum.filmorate.storage.userStorage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.time.LocalDate;
@@ -29,19 +32,6 @@ class FilmControllerTest {
 
     private FilmController filmController;
     private UserStorage userStorage;
-
-    @BeforeEach
-    void setUp() {
-        FilmStorage filmStorage = new InMemoryFilmStorage();
-        userStorage = new InMemoryUserStorage();
-        RatingStorage ratingStorage = new InMemoryRatingStorage();
-        FilmMapper filmMapper = new FilmMapperImpl();
-        MpaService mpaService = new MpaService(stubMpaStorage());
-        GenreService genreService = new GenreService(stubGenreStorage());
-        FilmService filmService = new FilmService(filmStorage, filmMapper, mpaService, genreService);
-        FilmRatingService filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage, filmMapper);
-        filmController = new FilmController(filmService, filmRatingService);
-    }
 
     private static MpaStorage stubMpaStorage() {
         return new MpaStorage() {
@@ -71,9 +61,26 @@ class FilmControllerTest {
 
             @Override
             public List<Genre> getByIds(List<Id> ids) {
-                return ids.stream().map(id -> new Genre(id, "stub")).toList();
+                return ids.stream()
+                          .map(id -> new Genre(id, "stub"))
+                          .toList();
             }
         };
+    }
+
+    @BeforeEach
+    void setUp() {
+        FilmStorage filmStorage = new InMemoryFilmStorage();
+        userStorage = new InMemoryUserStorage();
+        RatingStorage ratingStorage = new InMemoryRatingStorage(filmStorage);
+        FilmMapper filmMapper = new FilmMapperImpl();
+        MpaMapper mpaMapper = new MpaMapperImpl();
+        GenreMapper genreMapper = new GenreMapperImpl();
+        MpaService mpaService = new MpaService(stubMpaStorage(), mpaMapper);
+        GenreService genreService = new GenreService(stubGenreStorage(), genreMapper);
+        FilmService filmService = new FilmService(filmStorage, filmMapper, mpaService, genreService);
+        FilmRatingService filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage, filmMapper);
+        filmController = new FilmController(filmService, filmRatingService);
     }
 
     private FilmDto createFilm(String name, String description, LocalDate releaseDate, int duration) {
@@ -277,96 +284,5 @@ class FilmControllerTest {
         List<FilmDto> top1 = filmController.getPopularFilms(1);
         assertEquals(1, top1.size());
         assertTrue(top1.contains(f1) || top1.contains(f2));
-    }
-
-    private static class InMemoryUserStorage implements UserStorage {
-        private final Set<User> users = new HashSet<>();
-        private long nextId = 1;
-
-        @Override
-        public User addUser(User user) {
-            user.setId(new Id(nextId++));
-            users.add(user);
-            return user;
-        }
-
-        @Override
-        public User updateUser(User user) {
-            User existing = users.stream()
-                                 .filter(u -> u.getId()
-                                               .equals(user.getId()))
-                                 .findFirst()
-                                 .orElseThrow(() -> new RuntimeException("User not found"));
-            users.remove(existing);
-            users.add(user);
-            return user;
-        }
-
-        @Override
-        public User removeUser(Id id) {
-            User removed = users.stream()
-                                .filter(u -> u.getId()
-                                              .equals(id))
-                                .findFirst()
-                                .orElseThrow(() -> new RuntimeException("User not found"));
-            users.remove(removed);
-            return removed;
-        }
-
-        @Override
-        public List<User> getAllUsers() {
-            return new ArrayList<>(users);
-        }
-
-        @Override
-        public User getUserById(Id id) {
-            return users.stream()
-                        .filter(u -> u.getId()
-                                      .equals(id))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-
-        @Override
-        public List<User> getUserByIds(List<Id> ids) {
-            List<User> result = new ArrayList<>();
-            for (Id id : ids) {
-                result.add(getUserById(id));
-            }
-            return result;
-        }
-    }
-
-    private static class InMemoryRatingStorage implements RatingStorage {
-        private final Map<Id, Set<Id>> filmLikes = new HashMap<>();
-
-        @Override
-        public void putLike(Id filmId, Id userId) {
-            filmLikes.computeIfAbsent(filmId, k -> new HashSet<>())
-                     .add(userId);
-        }
-
-        @Override
-        public void removeLike(Id filmId, Id userId) {
-            Set<Id> ids = filmLikes.get(filmId);
-            if (ids != null) {
-                ids.remove(userId);
-                if (ids.isEmpty()) {
-                    filmLikes.remove(filmId);
-                }
-            }
-        }
-
-        @Override
-        public List<Id> getMostPopular(int count) {
-            return filmLikes.entrySet()
-                            .stream()
-                            .sorted((e1, e2) -> Integer.compare(e2.getValue()
-                                                                  .size(), e1.getValue()
-                                                                             .size()))
-                            .limit(count)
-                            .map(Map.Entry::getKey)
-                            .toList();
-        }
     }
 }

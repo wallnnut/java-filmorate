@@ -17,12 +17,10 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class FilmRatingService {
-    private static final int DEFAULT_COUNT = 10;
     private final RatingStorage filmRatingStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
     private final FilmMapper filmMapper;
-
 
     public void putLike(Id filmId, Id userId) {
         log.info("Attempting to add like from user {} to film {}", userId, filmId);
@@ -46,20 +44,8 @@ public class FilmRatingService {
 
     public List<FilmDto> getMostPopular(int count) {
         log.info("Requesting top {} most popular films", count);
-        List<Id> popularIds = filmRatingStorage.getMostPopular(count);
-        List<Film> popularFilms = popularIds.stream()
-                                            .map(filmStorage::getFilmById)
-                                            .toList();
-        log.debug("Returning {} popular film IDs", popularIds.size());
-        return filmMapper.toDto(popularFilms);
-    }
-
-    public List<FilmDto> getMostPopular() {
-        log.debug("Requesting most popular films with default count ({})", DEFAULT_COUNT);
-        List<Id> popularIds = filmRatingStorage.getMostPopular(DEFAULT_COUNT);
-        List<Film> popularFilms = popularIds.stream()
-                                            .map(filmStorage::getFilmById)
-                                            .toList();
+        List<Film> popularFilms = filmRatingStorage.getMostPopular(count);
+        log.debug("Returning {} popular films", popularFilms.size());
         return filmMapper.toDto(popularFilms);
     }
 }

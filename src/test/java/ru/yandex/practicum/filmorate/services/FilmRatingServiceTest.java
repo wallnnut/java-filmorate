@@ -31,7 +31,7 @@ class FilmRatingServiceTest {
     void setUp() {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
-        ratingStorage = new InMemoryRatingStorage();
+        ratingStorage = new InMemoryRatingStorage(filmStorage);
         FilmMapper filmMapper = new FilmMapperImpl();
         filmRatingService = new FilmRatingService(ratingStorage, userStorage, filmStorage, filmMapper);
     }
@@ -61,9 +61,9 @@ class FilmRatingServiceTest {
 
         filmRatingService.putLike(film.getId(), user.getId());
 
-        List<Id> popular = ratingStorage.getMostPopular(1);
+        List<Film> popular = ratingStorage.getMostPopular(1);
         assertEquals(1, popular.size());
-        assertEquals(film.getId(), popular.get(0));
+        assertEquals(film.getId(), popular.getFirst().getId());
     }
 
     @Test
@@ -93,17 +93,15 @@ class FilmRatingServiceTest {
         filmRatingService.removeLike(film.getId(), user.getId());
 
         List<FilmDto> popular = filmRatingService.getMostPopular(10);
-        System.out.println(popular);
-        assertFalse(popular.contains(film.getId()));
+        assertTrue(popular.stream().noneMatch(dto -> dto.getId().equals(film.getId())));
     }
 
     @Test
-    void removeLike_shouldThrowIfLikeNotFound() {
+    void removeLike_shouldNotThrowIfLikeNotFound() {
         Film film = filmStorage.addFilm(createFilm("Film", "Desc", LocalDate.now(), 100));
         User user = userStorage.addUser(createUser("user@mail.ru", "login", "Name", LocalDate.now()));
 
-        assertThrows(RuntimeException.class,
-                () -> filmRatingService.removeLike(film.getId(), user.getId()));
+        assertDoesNotThrow(() -> filmRatingService.removeLike(film.getId(), user.getId()));
     }
 
     @Test
@@ -129,5 +127,4 @@ class FilmRatingServiceTest {
         List<FilmDto> top = filmRatingService.getMostPopular(5);
         assertTrue(top.isEmpty());
     }
-
 }
