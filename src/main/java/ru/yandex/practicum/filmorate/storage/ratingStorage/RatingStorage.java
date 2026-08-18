@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.ratingStorage;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Id;
 
 import java.util.List;
@@ -9,5 +10,5 @@ public interface RatingStorage {
 
     void removeLike(Id filmId, Id userId);
 
-    List<Id> getMostPopular(int count);
+    List<Film> getMostPopular(int count);
 }

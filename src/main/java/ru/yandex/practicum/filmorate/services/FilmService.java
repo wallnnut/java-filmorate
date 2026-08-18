@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 
@@ -17,10 +18,12 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final FilmMapper filmMapper;
-
+    private final MpaService mpaService;
+    private final GenreService genreService;
 
     public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
+        checkMpaAndGenres(film);
         Film added = filmStorage.addFilm(filmMapper.toEntity(film));
         log.info("Film added successfully with id {}: {}", added.getId(), added);
         return filmMapper.toDto(added);
@@ -28,6 +31,7 @@ public class FilmService {
 
     public FilmDto updateFilm(FilmDto film) {
         log.info("Attempting to update film: {}", film);
+        checkMpaAndGenres(film);
         Film updated = filmStorage.updateFilm(filmMapper.toEntity(film));
         log.info("Film updated successfully: {}", updated);
         return filmMapper.toDto(updated);
@@ -52,5 +56,13 @@ public class FilmService {
         Film film = filmStorage.getFilmById(id);
         log.info("Found film by id {}: {}", id, film);
         return filmMapper.toDto(film);
+    }
+
+    private void checkMpaAndGenres(FilmDto film) {
+        mpaService.getById(film.getMpa().getId());
+        List<Id> genreIds = film.getGenres().stream()
+                .map(Genre::getId)
+                .toList();
+        genreService.getByIds(genreIds);
     }
 }

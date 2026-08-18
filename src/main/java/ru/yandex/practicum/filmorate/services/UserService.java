@@ -19,16 +19,16 @@ public class UserService {
     private final UserStorage userStore;
     private final UserMapper userMapper;
 
-    public UserDto addUser(UserDto user) {
-        log.info("Attempting to add user: {}", user);
-        User added = userStore.addUser(userMapper.toEntity(user));
+    public UserDto addUser(UserDto userDto) {
+        log.info("Attempting to add user: {}", userDto);
+        User added = userStore.addUser(toEntity(userDto));
         log.info("User added successfully with id {}: {}", added.getId(), added);
         return userMapper.toDto(added);
     }
 
-    public UserDto updateUser(UserDto user) {
-        log.info("Attempting to update user: {}", user);
-        User updated = userStore.updateUser(userMapper.toEntity(user));
+    public UserDto updateUser(UserDto userDto) {
+        log.info("Attempting to update user: {}", userDto);
+        User updated = userStore.updateUser(toEntity(userDto));
         log.info("User updated successfully: {}", updated);
         return userMapper.toDto(updated);
     }
@@ -63,5 +63,15 @@ public class UserService {
         List<User> users = userStore.getUserByIds(ids);
         log.info("Returning {} users for requested IDs", users.size());
         return userMapper.toDto(users);
+    }
+
+    private User toEntity(UserDto userDto) {
+        User user = userMapper.toEntity(userDto);
+        user.setName(resolveName(userDto.getName(), userDto.getLogin()));
+        return user;
+    }
+
+    private String resolveName(String name, String login) {
+        return (name == null || name.isBlank()) ? login : name;
     }
 }

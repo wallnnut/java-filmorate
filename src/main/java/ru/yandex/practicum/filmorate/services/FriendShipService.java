@@ -62,10 +62,9 @@ public class FriendShipService {
             return Collections.emptyList();
         }
         userStorage.getUserById(userId);
-        List<Id> friendsIds = friendsStorage.getFriendIds(userId);
-        List<User> friendsList = userStorage.getUserByIds(friendsIds);
-        log.info("User {} has {} friends", userId, friendsIds.size());
-        log.debug("Friends list: {}", friendsIds);
+        List<User> friendsList = friendsStorage.getFriends(userId);
+        log.info("User {} has {} friends", userId, friendsList.size());
+        log.debug("Friends list: {}", friendsList);
         return userMapper.toDto(friendsList);
     }
 
@@ -81,10 +80,9 @@ public class FriendShipService {
             log.debug("User {} requested common friends with himself - returning his friends", userAId);
             return getFriends(userAId);
         }
-        List<Id> common = friendsStorage.getCommonFriends(userAId, userBId);
-        List<User> commonUsers = userStorage.getUserByIds(common);
-        log.info("Found {} common friends between {} and {}", common.size(), userAId, userBId);
-        log.debug("Common friends list: {}", common);
+        List<User> commonUsers = friendsStorage.getCommonFriends(userAId, userBId);
+        log.info("Found {} common friends between {} and {}", commonUsers.size(), userAId, userBId);
+        log.debug("Common friends list: {}", commonUsers);
         return userMapper.toDto(commonUsers);
     }
 }
