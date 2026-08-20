@@ -46,6 +46,34 @@ public class FriendsDbStorage implements FriendsStorage {
     }
 
     @Override
+    public void acceptFriend(Id userId, Id friendId) {
+        jdbcTemplate.update(
+                """
+                        UPDATE friendship_request
+                        SET status = 'ACCEPTED', updated_at = ?
+                        WHERE initiator_id = ? AND receiver_id = ? AND status = 'PENDING'
+                        """,
+                Timestamp.from(Instant.now()),
+                friendId.getId(),
+                userId.getId()
+        );
+    }
+
+    @Override
+    public void rejectFriend(Id userId, Id friendId) {
+        jdbcTemplate.update(
+                """
+                        UPDATE friendship_request
+                        SET status = 'REJECTED', updated_at = ?
+                        WHERE initiator_id = ? AND receiver_id = ? AND status = 'PENDING'
+                        """,
+                Timestamp.from(Instant.now()),
+                friendId.getId(),
+                userId.getId()
+        );
+    }
+
+    @Override
     public void removeFriend(Id userId, Id friendId) {
         jdbcTemplate.update(
                 """
@@ -63,11 +91,19 @@ public class FriendsDbStorage implements FriendsStorage {
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
                         FROM friendship_request fr
-                        JOIN users u ON u.user_id = fr.receiver_id
-                        WHERE fr.initiator_id = ?
+                        JOIN users u ON (
+                            (fr.initiator_id = ? AND u.user_id = fr.receiver_id)
+                            OR
+                            (fr.receiver_id = ? AND u.user_id = fr.initiator_id)
+                        )
+                        WHERE fr.status = 'ACCEPTED'
+                          AND (fr.initiator_id = ? OR fr.receiver_id = ?)
                         ORDER BY u.user_id
                         """,
                 userRowMapper,
+                userId.getId(),
+                userId.getId(),
+                userId.getId(),
                 userId.getId()
         );
     }
@@ -77,14 +113,28 @@ public class FriendsDbStorage implements FriendsStorage {
         return jdbcTemplate.query(
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
-                        FROM friendship_request f1
-                        JOIN friendship_request f2 ON f1.receiver_id = f2.receiver_id
-                        JOIN users u ON u.user_id = f1.receiver_id
-                        WHERE f1.initiator_id = ? AND f2.initiator_id = ?
+                        FROM users u
+                        WHERE u.user_id != ? AND u.user_id != ?
+                          AND u.user_id IN (
+                            SELECT CASE WHEN fr.initiator_id = ? THEN fr.receiver_id ELSE fr.initiator_id END
+                            FROM friendship_request fr
+                            WHERE fr.status = 'ACCEPTED'
+                              AND ? IN (fr.initiator_id, fr.receiver_id)
+                          )
+                          AND u.user_id IN (
+                            SELECT CASE WHEN fr.initiator_id = ? THEN fr.receiver_id ELSE fr.initiator_id END
+                            FROM friendship_request fr
+                            WHERE fr.status = 'ACCEPTED'
+                              AND ? IN (fr.initiator_id, fr.receiver_id)
+                          )
                         ORDER BY u.user_id
                         """,
                 userRowMapper,
                 userIdA.getId(),
+                userIdB.getId(),
+                userIdA.getId(),
+                userIdA.getId(),
+                userIdB.getId(),
                 userIdB.getId()
         );
     }

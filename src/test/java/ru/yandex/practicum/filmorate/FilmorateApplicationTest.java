@@ -306,11 +306,32 @@ class FilmorateApplicationTest {
 
         friendShipService.addFriend(createdUser1.getId(), createdUser2.getId());
 
-        List<UserDto> friends = friendShipService.getFriends(createdUser1.getId());
-        assertThat(friends)
+        assertThat(friendShipService.getFriends(createdUser1.getId())).isEmpty();
+        assertThat(friendShipService.getFriends(createdUser2.getId())).isEmpty();
+
+        friendShipService.acceptFriend(createdUser2.getId(), createdUser1.getId());
+
+        List<UserDto> friends1 = friendShipService.getFriends(createdUser1.getId());
+        assertThat(friends1)
                 .hasSize(1)
                 .extracting(UserDto::getId)
                 .containsExactly(createdUser2.getId());
+        List<UserDto> friends2 = friendShipService.getFriends(createdUser2.getId());
+        assertThat(friends2)
+                .hasSize(1)
+                .extracting(UserDto::getId)
+                .containsExactly(createdUser1.getId());
+    }
+
+    @Test
+    void shouldRejectFriend() {
+        User createdUser1 = userStorage.addUser(user1);
+        User createdUser2 = userStorage.addUser(user2);
+
+        friendShipService.addFriend(createdUser1.getId(), createdUser2.getId());
+        friendShipService.rejectFriend(createdUser2.getId(), createdUser1.getId());
+
+        assertThat(friendShipService.getFriends(createdUser1.getId())).isEmpty();
         assertThat(friendShipService.getFriends(createdUser2.getId())).isEmpty();
     }
 
@@ -322,6 +343,8 @@ class FilmorateApplicationTest {
 
         friendShipService.addFriend(createdUser1.getId(), createdUser2.getId());
         friendShipService.addFriend(createdUser1.getId(), createdUser3.getId());
+        friendShipService.acceptFriend(createdUser2.getId(), createdUser1.getId());
+        friendShipService.acceptFriend(createdUser3.getId(), createdUser1.getId());
         friendShipService.removeFriend(createdUser1.getId(), createdUser3.getId());
 
         List<UserDto> friends = friendShipService.getFriends(createdUser1.getId());
@@ -339,6 +362,8 @@ class FilmorateApplicationTest {
 
         friendShipService.addFriend(createdUser1.getId(), createdUser3.getId());
         friendShipService.addFriend(createdUser2.getId(), createdUser3.getId());
+        friendShipService.acceptFriend(createdUser3.getId(), createdUser1.getId());
+        friendShipService.acceptFriend(createdUser3.getId(), createdUser2.getId());
 
         List<UserDto> common = friendShipService.getCommonFriends(createdUser1.getId(), createdUser2.getId());
         assertThat(common)
