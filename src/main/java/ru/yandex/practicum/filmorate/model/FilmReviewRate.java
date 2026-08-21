@@ -1,16 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FilmReview extends BaseEntity {
+public class FilmReviewRate extends BaseEntity {
+    private Id filmReviewId;
     private Id userId;
-    private Id filmId;
     private boolean isPositive;
-    private String content;
-    private long rate;
-
 }
-
