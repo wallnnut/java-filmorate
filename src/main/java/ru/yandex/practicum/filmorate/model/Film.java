@@ -16,4 +16,5 @@ public class Film extends BaseEntity {
     private int duration;
     private Set<Genre> genres = new LinkedHashSet<>();
     private Mpa mpa;
+    private Set<Director> directors = new LinkedHashSet<>();
 }

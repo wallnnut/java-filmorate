@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 
@@ -20,6 +21,7 @@ public class FilmService {
     private final FilmMapper filmMapper;
     private final MpaService mpaService;
     private final GenreService genreService;
+    private final DirectorService directorService;
 
     public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
@@ -58,11 +60,24 @@ public class FilmService {
         return filmMapper.toDto(film);
     }
 
+    public List<FilmDto> getFilmsByDirector(Id directorId, String sortBy) {
+        log.debug("Request to get films by director {} sorted by {}", directorId, sortBy);
+        directorService.getById(directorId);
+        List<Film> films = filmStorage.getFilmsByDirector(directorId.getId(), sortBy);
+        return filmMapper.toDto(films);
+    }
+
     private void checkMpaAndGenres(FilmDto film) {
         mpaService.getById(film.getMpa().getId());
         List<Id> genreIds = film.getGenres().stream()
                 .map(Genre::getId)
                 .toList();
         genreService.getByIds(genreIds);
+
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                directorService.getById(new Id(director.getId()));
+            }
+        }
     }
 }

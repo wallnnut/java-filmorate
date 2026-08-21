@@ -72,4 +72,12 @@ public class FilmController {
         log.info("Returning {} popular films", popularFilms.size());
         return popularFilms;
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(@PathVariable Id directorId, @RequestParam String sortBy) {
+        log.info("Received request to get films by director id: {} sorted by: {}", directorId, sortBy);
+        List<FilmDto> films = filmService.getFilmsByDirector(directorId, sortBy);
+        log.info("Returning {} films for director id: {}", films.size(), directorId);
+        return films;
+    }
 }

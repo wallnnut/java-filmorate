@@ -16,4 +16,6 @@ public interface FilmStorage {
     List<Film> getAllFilms();
 
     Film getFilmById(Id id) throws NotFoundException;
+
+    List<Film> getFilmsByDirector(long directorId, String sortBy);
 }
