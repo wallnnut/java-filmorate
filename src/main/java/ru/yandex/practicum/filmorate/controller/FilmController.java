@@ -51,6 +51,14 @@ public class FilmController {
         return film;
     }
 
+    @DeleteMapping("/{id}")
+    public FilmDto deleteFilm(@PathVariable Id id) {
+        log.info("Received request to delete film with id: {}", id);
+        FilmDto deletedFilm = filmService.removeFilm(id);
+        log.info("Film deleted successfully: {}", deletedFilm);
+        return deletedFilm;
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@PathVariable Id id, @PathVariable Id userId) {
         log.info("Received request to add like from user {} to film {}", userId, id);
