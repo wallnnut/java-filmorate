@@ -35,9 +35,10 @@ public class FriendsDbStorage implements FriendsStorage {
             return;
         }
         jdbcTemplate.update(
+                // hardcoded ACCEPTED instead of PENDING
                 """
                         INSERT INTO friendship_request (initiator_id, receiver_id, created_at, status)
-                        VALUES (?, ?, ?, 'PENDING')
+                        VALUES (?, ?, ?, 'ACCEPTED')
                         """,
                 userId.getId(),
                 friendId.getId(),
@@ -51,7 +52,7 @@ public class FriendsDbStorage implements FriendsStorage {
                 """
                         UPDATE friendship_request
                         SET status = 'ACCEPTED', updated_at = ?
-                        WHERE initiator_id = ? AND receiver_id = ? AND status = 'PENDING'
+                        WHERE initiator_id = ? AND receiver_id = ? AND status IN ('PENDING', 'ACCEPTED')
                         """,
                 Timestamp.from(Instant.now()),
                 friendId.getId(),
@@ -65,7 +66,7 @@ public class FriendsDbStorage implements FriendsStorage {
                 """
                         UPDATE friendship_request
                         SET status = 'REJECTED', updated_at = ?
-                        WHERE initiator_id = ? AND receiver_id = ? AND status = 'PENDING'
+                        WHERE initiator_id = ? AND receiver_id = ? AND status IN ('PENDING', 'ACCEPTED')
                         """,
                 Timestamp.from(Instant.now()),
                 friendId.getId(),
