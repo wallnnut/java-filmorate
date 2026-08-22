@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.filmReviewStorage;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -18,7 +17,6 @@ import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
-@Slf4j
 public class FilmReviewDbStorage implements FilmReviewStorage {
     private static final String REVIEW_SELECT = """
             SELECT r.film_review_id,
@@ -105,7 +103,6 @@ public class FilmReviewDbStorage implements FilmReviewStorage {
         String sqlLimit = count != null ? " LIMIT ?" : "";
         String sql = REVIEW_SELECT + sqlWithId + " ORDER BY rate DESC, r.film_review_id" + sqlLimit;
         List<Object> args = new ArrayList<>();
-        log.debug("search args = {}", args.toArray());
         if (id != null) {
             args.add(id.getId());
         }

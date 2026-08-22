@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.filmReviewRateStorage;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.FilmReviewRate;
@@ -12,7 +11,6 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-@Slf4j
 public class FilmReviewRateDbRateStorage implements FilmReviewRateStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmReviewRateRowMapper reviewRateRowMapper;

@@ -73,7 +73,6 @@ erDiagram
         boolean is_positive "NOT NULL"
         bigint user_id FK "NOT NULL"
         bigint film_id FK "NOT NULL"
-        bigint rate "DEFAULT 0"
     }
 
     film_review_rating {
@@ -126,6 +125,7 @@ film ──1:N──► film_genre ◄──N:1── genre
 - `film_rating` — пара `(film_id, user_id)` уникальна (один лайк от пользователя на фильм)
 - `friendship_request` — пара `(initiator_id, receiver_id)` уникальна (одна заявка между двумя пользователями)
 - `film_genre` — пара `(film_id, genre_id)` уникальна (жанр не дублируется у одного фильма)
+- `film_review_rating` — пара `(film_review_id, user_id)` уникальна (одна оценка пользователя на отзыв)
 
 **Справочники:**
 

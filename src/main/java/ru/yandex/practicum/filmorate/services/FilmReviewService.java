@@ -24,7 +24,6 @@ public class FilmReviewService {
     private final FilmStorage filmStorage;
 
     public FilmReviewDto addReview(FilmReviewDto reviewDto) {
-        log.info("Received request to add review: {}", reviewDto);
         userStorage.getUserById(reviewDto.getUserId());
         filmStorage.getFilmById(reviewDto.getFilmId());
         FilmReview added = filmReviewStorage.addFilmReview(reviewMapper.toEntity(reviewDto));
@@ -33,7 +32,6 @@ public class FilmReviewService {
     }
 
     public FilmReviewDto updateReview(FilmReviewDto reviewDto) {
-        log.info("Received request to update review: {}", reviewDto);
         if (reviewDto.getReviewId() == null) {
             throw new NotFoundException("entity with id=null does not exists");
         }
@@ -49,6 +47,7 @@ public class FilmReviewService {
 
     public void removeReview(Id id) {
         filmReviewStorage.removeFilmReview(id);
+        log.info("Review removed successfully with id {}", id);
     }
 
     public List<FilmReviewDto> getReviewsByFilmIdAndCount(Id id, Integer count) {

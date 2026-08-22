@@ -5,7 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dto.FilmReviewDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -25,10 +27,16 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
+@AutoConfigureMockMvc
 @Transactional
 class FilmReviewServiceTest {
 
@@ -42,6 +50,8 @@ class FilmReviewServiceTest {
     private RateFilmReviewService rateFilmReviewService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private MockMvc mockMvc;
 
     private User user1;
     private User user2;
@@ -149,6 +159,50 @@ class FilmReviewServiceTest {
         assertThrows(NotFoundException.class,
                 () -> rateFilmReviewService.like(filmReviewService.addReview(newReview("Ok", true)).getReviewId(),
                         unknown));
+    }
+
+    @Test
+    void shouldReturnAllReviewsWhenFilmIdIsOmitted() throws Exception {
+        Film anotherFilm = filmStorage.addFilm(newFilm("Another Review Film"));
+        filmReviewService.addReview(newReview("First film review", true));
+        FilmReviewDto secondFilmReview = newReview("Second film review", false);
+        secondFilmReview.setFilmId(anotherFilm.getId());
+        filmReviewService.addReview(secondFilmReview);
+
+        mockMvc.perform(get("/reviews"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].content", containsInAnyOrder(
+                        "First film review", "Second film review")));
+    }
+
+    @Test
+    void shouldLimitReviewsToTenByDefault() throws Exception {
+        for (int i = 1; i <= 11; i++) {
+            filmReviewService.addReview(newReview("Review " + i, true));
+        }
+
+        mockMvc.perform(get("/reviews").param("filmId", String.valueOf(film.getId().getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(10));
+
+        mockMvc.perform(get("/reviews")
+                        .param("filmId", String.valueOf(film.getId().getId()))
+                        .param("count", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void shouldDeleteReviewViaApi() throws Exception {
+        FilmReviewDto created = filmReviewService.addReview(newReview("To delete", true));
+        long reviewId = created.getReviewId().getId();
+
+        mockMvc.perform(delete("/reviews/{id}", reviewId))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/reviews/{id}", reviewId))
+                .andExpect(status().isNotFound());
     }
 
     private FilmReviewDto newReview(String content, boolean isPositive) {
