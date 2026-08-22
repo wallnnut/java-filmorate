@@ -101,19 +101,17 @@ public class FilmReviewDbStorage implements FilmReviewStorage {
 
     @Override
     public List<FilmReview> getFilmReviewByFilmId(Id id, Integer count) throws NotFoundException {
-        log.info("id = {}, count = {}", id, count);
         String sqlWithId = id != null ? " WHERE r.film_id = ?" : "";
         String sqlLimit = count != null ? " LIMIT ?" : "";
         String sql = REVIEW_SELECT + sqlWithId + " ORDER BY rate DESC, r.film_review_id" + sqlLimit;
         List<Object> args = new ArrayList<>();
-
+        log.debug("search args = {}", args.toArray());
         if (id != null) {
             args.add(id.getId());
         }
         if (count != null) {
             args.add(count);
         }
-        log.info("sql = {}", sql);
         return jdbcTemplate.query(sql, reviewRowMapper, args.toArray());
     }
 }
