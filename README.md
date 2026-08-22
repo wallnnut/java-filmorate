@@ -6,6 +6,8 @@ Template repository for Filmorate project.
 
 ```mermaid
 erDiagram
+    direction LR
+
     users ||--o{ film_rating: "rates"
     film ||--o{ film_rating: "rated_by"
     users ||--o{ friendship_request: "initiates"
@@ -13,6 +15,10 @@ erDiagram
     age_rating ||--o{ film: "has"
     film ||--o{ film_genre: "has"
     genre ||--o{ film_genre: "includes"
+    film ||--o{ film_review: "receives"
+    film_review ||--o{ film_review_rating: "receives"
+    users ||--o{ film_review: "leaves"
+    users ||--o{ film_review_rating: "leaves"
 
     users {
         bigserial user_id PK
@@ -60,6 +66,22 @@ erDiagram
         bigint film_id FK
         bigint user_id FK
     }
+
+    film_review {
+        bigserial film_review_id PK
+        varchar film_review_content
+        boolean is_positive "NOT NULL"
+        bigint user_id FK "NOT NULL"
+        bigint film_id FK "NOT NULL"
+    }
+
+    film_review_rating {
+        bigserial film_review_rating_id PK
+        bigint film_review_id FK "NOT NULL"
+        bigint user_id FK "NOT NULL"
+        boolean is_positive "NOT NULL"
+    }
+
 ```
 
 **Связи на диаграмме (1:N):**
@@ -76,6 +98,9 @@ erDiagram
 | `age_rating` → `film`                      | 1:N | Один возрастной рейтинг может быть у многих фильмов; у каждого фильма — один рейтинг |
 | `film` → `film_genre`                      | 1:N | У фильма может быть несколько жанров                                                 |
 | `genre` → `film_genre`                     | 1:N | Один жанр может относиться к многим фильмам                                          |
+| `film` → `film_review`                     | 1:N | У фильма может быть несколько отзывов от разных пользователей                        |
+| `users` → `film_review`                    | 1:N | У одного пользователя могут быть много отзывов на разные фильмы                      |
+| `users` → `film_review_rating`             | 1:N | У одного пользователя могут быть много отзывов на разные отзывы о фильме             |
 
 **Логические связи M:N:**
 
@@ -100,6 +125,7 @@ film ──1:N──► film_genre ◄──N:1── genre
 - `film_rating` — пара `(film_id, user_id)` уникальна (один лайк от пользователя на фильм)
 - `friendship_request` — пара `(initiator_id, receiver_id)` уникальна (одна заявка между двумя пользователями)
 - `film_genre` — пара `(film_id, genre_id)` уникальна (жанр не дублируется у одного фильма)
+- `film_review_rating` — пара `(film_review_id, user_id)` уникальна (одна оценка пользователя на отзыв)
 
 **Справочники:**
 
