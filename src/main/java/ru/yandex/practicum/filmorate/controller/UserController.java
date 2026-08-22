@@ -80,4 +80,12 @@ public class UserController {
         log.info("Found user: {}", user);
         return user;
     }
+
+    @DeleteMapping("/{id}")
+    public UserDto deleteUser(@PathVariable Id id) {
+        log.info("Received request to delete user with id: {}", id);
+        UserDto deletedUser = userService.removeUser(id);
+        log.info("User deleted successfully: {}", deletedUser);
+        return deletedUser;
+    }
 }
