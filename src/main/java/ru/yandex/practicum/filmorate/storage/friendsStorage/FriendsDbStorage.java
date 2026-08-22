@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.config.FriendshipProperties;
+import ru.yandex.practicum.filmorate.model.FriendshipRequestStatus;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserRowMapper;
@@ -18,6 +20,7 @@ import java.util.List;
 public class FriendsDbStorage implements FriendsStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserRowMapper userRowMapper;
+    private final FriendshipProperties friendshipProperties;
 
     @Override
     public void addFriend(Id userId, Id friendId) {
@@ -34,15 +37,18 @@ public class FriendsDbStorage implements FriendsStorage {
         if (exists != null) {
             return;
         }
+        FriendshipRequestStatus status = friendshipProperties.isAutoAccept()
+                ? FriendshipRequestStatus.ACCEPTED
+                : FriendshipRequestStatus.PENDING;
         jdbcTemplate.update(
-                // hardcoded ACCEPTED instead of PENDING
                 """
                         INSERT INTO friendship_request (initiator_id, receiver_id, created_at, status)
-                        VALUES (?, ?, ?, 'ACCEPTED')
+                        VALUES (?, ?, ?, ?)
                         """,
                 userId.getId(),
                 friendId.getId(),
-                Timestamp.from(Instant.now())
+                Timestamp.from(Instant.now()),
+                status.name()
         );
     }
 
@@ -88,8 +94,34 @@ public class FriendsDbStorage implements FriendsStorage {
 
     @Override
     public List<User> getFriends(Id userId) {
-        // two-side friendship commented
-        /* return jdbcTemplate.query(
+        return friendshipProperties.isBidirectional()
+                ? getFriendsBidirectional(userId)
+                : getFriendsOutgoing(userId);
+    }
+
+    @Override
+    public List<User> getCommonFriends(Id userIdA, Id userIdB) {
+        return friendshipProperties.isBidirectional()
+                ? getCommonFriendsBidirectional(userIdA, userIdB)
+                : getCommonFriendsOutgoing(userIdA, userIdB);
+    }
+
+    private List<User> getFriendsOutgoing(Id userId) {
+        return jdbcTemplate.query(
+                """
+                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
+                        FROM friendship_request fr
+                        JOIN users u ON u.user_id = fr.receiver_id
+                        WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        ORDER BY u.user_id
+                        """,
+                userRowMapper,
+                userId.getId()
+        );
+    }
+
+    private List<User> getFriendsBidirectional(Id userId) {
+        return jdbcTemplate.query(
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
                         FROM friendship_request fr
@@ -107,24 +139,32 @@ public class FriendsDbStorage implements FriendsStorage {
                 userId.getId(),
                 userId.getId(),
                 userId.getId()
-        ); */
-        return jdbcTemplate.query(
-                """
-                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
-                        FROM friendship_request fr
-                        JOIN users u ON u.user_id = fr.receiver_id
-                        WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
-                        ORDER BY u.user_id
-                        """,
-                userRowMapper,
-                userId.getId()
         );
     }
 
-    @Override
-    public List<User> getCommonFriends(Id userIdA, Id userIdB) {
-        // two-side friendship commented
-        /* return jdbcTemplate.query(
+    private List<User> getCommonFriendsOutgoing(Id userIdA, Id userIdB) {
+        return jdbcTemplate.query(
+                """
+                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
+                        FROM users u
+                        WHERE u.user_id IN (
+                            SELECT fr.receiver_id FROM friendship_request fr
+                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        )
+                        AND u.user_id IN (
+                            SELECT fr.receiver_id FROM friendship_request fr
+                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        )
+                        ORDER BY u.user_id
+                        """,
+                userRowMapper,
+                userIdA.getId(),
+                userIdB.getId()
+        );
+    }
+
+    private List<User> getCommonFriendsBidirectional(Id userIdA, Id userIdB) {
+        return jdbcTemplate.query(
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
                         FROM users u
@@ -149,24 +189,6 @@ public class FriendsDbStorage implements FriendsStorage {
                 userIdA.getId(),
                 userIdA.getId(),
                 userIdB.getId(),
-                userIdB.getId()
-        ); */
-        return jdbcTemplate.query(
-                """
-                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
-                        FROM users u
-                        WHERE u.user_id IN (
-                            SELECT fr.receiver_id FROM friendship_request fr
-                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
-                        )
-                        AND u.user_id IN (
-                            SELECT fr.receiver_id FROM friendship_request fr
-                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
-                        )
-                        ORDER BY u.user_id
-                        """,
-                userRowMapper,
-                userIdA.getId(),
                 userIdB.getId()
         );
     }
