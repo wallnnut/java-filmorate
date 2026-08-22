@@ -58,6 +58,13 @@ public class FilmService {
         return filmMapper.toDto(film);
     }
 
+    public List<FilmDto> getCommonFilms(Id userId, Id friendId) {
+        log.info("Request to get common films of users {} and {}", userId, friendId);
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Found {} common films", films.size());
+        return filmMapper.toDto(films);
+    }
+
     private void checkMpaAndGenres(FilmDto film) {
         mpaService.getById(film.getMpa().getId());
         List<Id> genreIds = film.getGenres().stream()

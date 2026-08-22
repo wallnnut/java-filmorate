@@ -72,4 +72,12 @@ public class FilmController {
         log.info("Returning {} popular films", popularFilms.size());
         return popularFilms;
     }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Id userId, @RequestParam Id friendId) {
+        log.info("Received request to get common films of users {} and {}", userId, friendId);
+        List<FilmDto> commonFilms = filmService.getCommonFilms(userId, friendId);
+        log.info("Returning {} common films", commonFilms.size());
+        return commonFilms;
+    }
 }
