@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class FilmService {
     private final FilmMapper filmMapper;
     private final MpaService mpaService;
     private final GenreService genreService;
+    private final UserStorage userStorage;
 
     public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
@@ -56,6 +58,15 @@ public class FilmService {
         Film film = filmStorage.getFilmById(id);
         log.info("Found film by id {}: {}", id, film);
         return filmMapper.toDto(film);
+    }
+
+    public List<FilmDto> getCommonFilms(Id userId, Id friendId) {
+        log.info("Request to get common films of users {} and {}", userId, friendId);
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Found {} common films", films.size());
+        return filmMapper.toDto(films);
     }
 
     private void checkMpaAndGenres(FilmDto film) {

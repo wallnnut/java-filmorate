@@ -38,6 +38,38 @@ public class FriendShipService {
         log.info("Friendship between {} and {} successfully added", userId, friendId);
     }
 
+    public void acceptFriend(Id userId, Id friendId) {
+        log.info("Accepting friend: user {} accepting friend {}", userId, friendId);
+        if (userId == null || friendId == null) {
+            log.warn("Attempt to accept friend with null userId or friendId");
+            return;
+        }
+        if (userId.equals(friendId)) {
+            log.warn("User {} tried to accept himself as friend", userId);
+            return;
+        }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        friendsStorage.acceptFriend(userId, friendId);
+        log.info("Friendship between {} and {} accepted", userId, friendId);
+    }
+
+    public void rejectFriend(Id userId, Id friendId) {
+        log.info("Rejecting friend: user {} rejecting friend {}", userId, friendId);
+        if (userId == null || friendId == null) {
+            log.warn("Attempt to reject friend with null userId or friendId");
+            return;
+        }
+        if (userId.equals(friendId)) {
+            log.warn("User {} tried to reject himself as friend", userId);
+            return;
+        }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        friendsStorage.rejectFriend(userId, friendId);
+        log.info("Friendship between {} and {} rejected", userId, friendId);
+    }
+
     public void removeFriend(Id userId, Id friendId) {
         log.info("Removing friend: user {} -> friend {}", userId, friendId);
         if (userId == null || friendId == null) {

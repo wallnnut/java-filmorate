@@ -8,6 +8,10 @@ import java.util.List;
 public interface FriendsStorage {
     void addFriend(Id userId, Id friendId);
 
+    void acceptFriend(Id userId, Id friendId);
+
+    void rejectFriend(Id userId, Id friendId);
+
     void removeFriend(Id userId, Id friendId);
 
     List<User> getFriends(Id userId);

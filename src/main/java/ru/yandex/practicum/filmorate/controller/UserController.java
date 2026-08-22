@@ -26,6 +26,20 @@ public class UserController {
         log.info("Friendship between {} and {} established", userId, friendId);
     }
 
+    @PutMapping("/{userId}/friends/{friendId}/accept")
+    public void acceptFriend(@PathVariable Id userId, @PathVariable Id friendId) {
+        log.info("User {} is accepting friend {}", userId, friendId);
+        friendShipService.acceptFriend(userId, friendId);
+        log.info("Friendship between {} and {} accepted", userId, friendId);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}/reject")
+    public void rejectFriend(@PathVariable Id userId, @PathVariable Id friendId) {
+        log.info("User {} is rejecting friend {}", userId, friendId);
+        friendShipService.rejectFriend(userId, friendId);
+        log.info("Friendship between {} and {} rejected", userId, friendId);
+    }
+
     @DeleteMapping("/{userId}/friends/{friendId}")
     public void removeFriend(@PathVariable Id userId, @PathVariable Id friendId) {
         log.info("User {} is removing friend {}", userId, friendId);
