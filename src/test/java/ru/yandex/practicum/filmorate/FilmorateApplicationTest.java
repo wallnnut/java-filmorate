@@ -311,11 +311,13 @@ class FilmorateApplicationTest {
                 .hasSize(1)
                 .extracting(UserDto::getId)
                 .containsExactly(createdUser2.getId());
-        List<UserDto> friends2 = friendShipService.getFriends(createdUser2.getId());
+        // test for two-side friendship commented
+        /* List<UserDto> friends2 = friendShipService.getFriends(createdUser2.getId());
         assertThat(friends2)
                 .hasSize(1)
                 .extracting(UserDto::getId)
-                .containsExactly(createdUser1.getId());
+                .containsExactly(createdUser1.getId()); */
+        assertThat(friendShipService.getFriends(createdUser2.getId())).isEmpty();
     }
 
     @Test

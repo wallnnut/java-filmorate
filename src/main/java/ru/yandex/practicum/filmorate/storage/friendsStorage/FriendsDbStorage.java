@@ -88,7 +88,8 @@ public class FriendsDbStorage implements FriendsStorage {
 
     @Override
     public List<User> getFriends(Id userId) {
-        return jdbcTemplate.query(
+        // two-side friendship commented
+        /* return jdbcTemplate.query(
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
                         FROM friendship_request fr
@@ -106,12 +107,24 @@ public class FriendsDbStorage implements FriendsStorage {
                 userId.getId(),
                 userId.getId(),
                 userId.getId()
+        ); */
+        return jdbcTemplate.query(
+                """
+                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
+                        FROM friendship_request fr
+                        JOIN users u ON u.user_id = fr.receiver_id
+                        WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        ORDER BY u.user_id
+                        """,
+                userRowMapper,
+                userId.getId()
         );
     }
 
     @Override
     public List<User> getCommonFriends(Id userIdA, Id userIdB) {
-        return jdbcTemplate.query(
+        // two-side friendship commented
+        /* return jdbcTemplate.query(
                 """
                         SELECT u.user_id, u.email, u.login, u.name, u.birthday
                         FROM users u
@@ -136,6 +149,24 @@ public class FriendsDbStorage implements FriendsStorage {
                 userIdA.getId(),
                 userIdA.getId(),
                 userIdB.getId(),
+                userIdB.getId()
+        ); */
+        return jdbcTemplate.query(
+                """
+                        SELECT u.user_id, u.email, u.login, u.name, u.birthday
+                        FROM users u
+                        WHERE u.user_id IN (
+                            SELECT fr.receiver_id FROM friendship_request fr
+                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        )
+                        AND u.user_id IN (
+                            SELECT fr.receiver_id FROM friendship_request fr
+                            WHERE fr.initiator_id = ? AND fr.status = 'ACCEPTED'
+                        )
+                        ORDER BY u.user_id
+                        """,
+                userRowMapper,
+                userIdA.getId(),
                 userIdB.getId()
         );
     }
