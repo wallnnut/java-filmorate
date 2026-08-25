@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmReviewDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.FilmReviewMapper;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.FilmReview;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.filmReviewStorage.FilmReviewStorage;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
@@ -22,11 +24,13 @@ public class FilmReviewService {
     private final FilmReviewMapper reviewMapper;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final UserEventService userEventService;
 
     public FilmReviewDto addReview(FilmReviewDto reviewDto) {
         userStorage.getUserById(reviewDto.getUserId());
         filmStorage.getFilmById(reviewDto.getFilmId());
         FilmReview added = filmReviewStorage.addFilmReview(reviewMapper.toEntity(reviewDto));
+        userEventService.record(added.getUserId(), Event.REVIEW, Operation.ADD, added.getId());
         log.info("Review added successfully with id {}", added.getId());
         return reviewMapper.toDto(added);
     }
@@ -36,6 +40,7 @@ public class FilmReviewService {
             throw new NotFoundException("entity with id=null does not exists");
         }
         FilmReview updated = filmReviewStorage.updateFilmReview(reviewMapper.toEntity(reviewDto));
+        userEventService.record(updated.getUserId(), Event.REVIEW, Operation.UPDATE, updated.getId());
         log.info("Review updated successfully with id {}", updated.getId());
         return reviewMapper.toDto(updated);
     }
@@ -46,7 +51,9 @@ public class FilmReviewService {
     }
 
     public void removeReview(Id id) {
+        FilmReview existing = filmReviewStorage.getFilmReviewById(id);
         filmReviewStorage.removeFilmReview(id);
+        userEventService.record(existing.getUserId(), Event.REVIEW, Operation.REMOVE, id);
         log.info("Review removed successfully with id {}", id);
     }
 

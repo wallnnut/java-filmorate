@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.dto.UserEventDto;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.FriendShipService;
+import ru.yandex.practicum.filmorate.services.UserEventService;
 import ru.yandex.practicum.filmorate.services.UserService;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final FriendShipService friendShipService;
+    private final UserEventService userEventService;
 
     @PutMapping("/{userId}/friends/{friendId}")
     public void addFriend(@PathVariable Id userId, @PathVariable Id friendId) {
@@ -93,6 +96,14 @@ public class UserController {
         UserDto user = userService.getUserById(id);
         log.info("Found user: {}", user);
         return user;
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<UserEventDto> getFeed(@PathVariable Id id) {
+        log.info("Request to get feed of user {}", id);
+        List<UserEventDto> feed = userEventService.getFeed(id);
+        log.info("Returning {} events for user {}", feed.size(), id);
+        return feed;
     }
 
     @DeleteMapping("/{id}")

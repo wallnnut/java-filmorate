@@ -19,6 +19,8 @@ erDiagram
     film_review ||--o{ film_review_rating: "receives"
     users ||--o{ film_review: "leaves"
     users ||--o{ film_review_rating: "leaves"
+    users ||--o{ user_events: "has"
+
 
     users {
         bigserial user_id PK
@@ -81,7 +83,15 @@ erDiagram
         bigint user_id FK "NOT NULL"
         boolean is_positive "NOT NULL"
     }
-
+    
+    user_events {
+        bigserial event_id PK
+        bigint user_id FK "NOT NULL"
+        timestamp event_time "NOT NULL"
+        varchar event_type "NOT NULL"
+        varchar operation "NOT NULL"
+        bigint entity_id "NOT NULL"
+    }
 ```
 
 **Связи на диаграмме (1:N):**
