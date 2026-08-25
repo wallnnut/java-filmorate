@@ -27,7 +27,9 @@ public class FilmService {
 
     public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
-        checkMpaAndGenres(film);
+        checkMpa(film);
+        checkGenres(film);
+        checkDirectors(film);
         Film added = filmStorage.addFilm(filmMapper.toEntity(film));
         log.info("Film added successfully with id {}: {}", added.getId(), added);
         return filmMapper.toDto(added);
@@ -35,7 +37,9 @@ public class FilmService {
 
     public FilmDto updateFilm(FilmDto film) {
         log.info("Attempting to update film: {}", film);
-        checkMpaAndGenres(film);
+        checkMpa(film);
+        checkGenres(film);
+        checkDirectors(film);
         Film updated = filmStorage.updateFilm(filmMapper.toEntity(film));
         log.info("Film updated successfully: {}", updated);
         return filmMapper.toDto(updated);
@@ -78,13 +82,22 @@ public class FilmService {
         return filmMapper.toDto(films);
     }
 
-    private void checkMpaAndGenres(FilmDto film) {
-        mpaService.getById(film.getMpa().getId());
-        List<Id> genreIds = film.getGenres().stream()
-                .map(Genre::getId)
-                .toList();
-        genreService.getByIds(genreIds);
+    private void checkMpa(FilmDto film) {
+        if (film.getMpa() != null) {
+            mpaService.getById(film.getMpa().getId());
+        }
+    }
 
+    private void checkGenres(FilmDto film) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            List<Id> genreIds = film.getGenres().stream()
+                    .map(Genre::getId)
+                    .toList();
+            genreService.getByIds(genreIds);
+        }
+    }
+
+    private void checkDirectors(FilmDto film) {
         if (film.getDirectors() != null) {
             for (Director director : film.getDirectors()) {
                 directorService.getById(new Id(director.getId()));

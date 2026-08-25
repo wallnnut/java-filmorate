@@ -15,8 +15,8 @@ erDiagram
     age_rating ||--o{ film: "has"
     film ||--o{ film_genre: "has"
     genre ||--o{ film_genre: "includes"
-    film ||--o{ film_director: "has"
-    director ||--o{ film_director: "by"
+    film ||--o{ film_directors: "has"
+    director ||--o{ film_directors: "by"
     film ||--o{ film_review: "receives"
     film_review ||--o{ film_review_rating: "receives"
     users ||--o{ film_review: "leaves"
@@ -69,12 +69,12 @@ erDiagram
         bigint user_id FK
     }
 
-    director {
+    directors {
         bigserial director_id PK
         varchar name "NOT NULL"
     }
 
-    film_director {
+    film_directors {
         bigint film_id FK
         bigint director_id FK
     }
@@ -121,15 +121,15 @@ erDiagram
 На уровне предметной области есть связи **многие-ко-многим**. В схеме они реализованы через связующие таблицы — каждая
 такая связь раскладывается на **две** связи 1:N:
 
-| Логическая связь         | Связующая таблица | Как читать                                                                       |
-|--------------------------|-------------------|----------------------------------------------------------------------------------|
-| `users` ↔ `film` (лайки) | `film_rating`     | пользователь лайкает много фильмов, фильм получает лайки от многих пользователей |
-| `film` ↔ `genre` (жанры) | `film_genre`      | у фильма может быть несколько жанров, один жанр относится ко многим фильмам      |
-| `film` ↔ `director` (режиссёры) | `film_director` | у фильма может быть несколько режиссёров, один режиссёр относится ко многим фильмам |
+| Логическая связь                | Связующая таблица | Как читать                                                                          |
+|---------------------------------|-------------------|-------------------------------------------------------------------------------------|
+| `users` ↔ `film` (лайки)        | `film_rating`     | пользователь лайкает много фильмов, фильм получает лайки от многих пользователей    |
+| `film` ↔ `genre` (жанры)        | `film_genre`      | у фильма может быть несколько жанров, один жанр относится ко многим фильмам         |
+| `film` ↔ `director` (режиссёры) | `film_director`   | у фильма может быть несколько режиссёров, один режиссёр относится ко многим фильмам |
 
-Используйте код с осторожностью.users ──1:N──► film_rating ◄──N:1── filmfilm ──1:N──► film_genre ◄──N:1── genrefilm ──1:N──► film_director ◄──N:1── director
-Связь `users` ↔ `users` (дружба) **не является M:N напрямую**: она идёт через `friendship_request`, где у каждой заявки
-есть один инициатор и один получатель.
+Используйте код с осторожностью.users ──1:N──► film_rating ◄──N:1── filmfilm ──1:N──► film_genre ◄──N:1── genrefilm ──1:
+N──► film_director ◄──N:1── director Связь `users` ↔ `users` (дружба) **не является M:N напрямую**: она идёт через
+`friendship_request`, где у каждой заявки есть один инициатор и один получатель.
 
 **Ограничения уникальности:**
 
@@ -157,14 +157,3 @@ erDiagram
 | 3               | PG-13  |
 | 4               | R      |
 | 5               | NC-17  |
-
-**Новый API (Режиссёры):**
-
-В рамках задачи `add-director` контроллер работает со слоем `DirectorDto` для валидации и передачи данных.
-
-- `GET /films/director/{directorId}?sortBy=[year,likes]` — Список фильмов режиссёра, отсортированных по годам или лайкам.
-- `GET /directors` — Список всех режиссёров.
-- `GET /directors/{id}` — Получение режиссёра по id.
-- `POST /directors` — Создание режиссёра (принимает `DirectorDto`).
-- `PUT /directors` — Изменение режиссёра (принимает `DirectorDto`).
-- `DELETE /directors/{id}` — Удаление режиссёра.

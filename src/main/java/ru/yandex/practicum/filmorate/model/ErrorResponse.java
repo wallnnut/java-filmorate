@@ -8,7 +8,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 public class ErrorResponse {
-    private String error;
+    private String message;
     private int status;
     private String timestamp;
     private Map<String, String> errors;
