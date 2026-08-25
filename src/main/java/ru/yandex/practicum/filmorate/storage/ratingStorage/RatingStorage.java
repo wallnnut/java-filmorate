@@ -10,5 +10,9 @@ public interface RatingStorage {
 
     void removeLike(Id filmId, Id userId);
 
-    List<Film> getMostPopular(int count);
+    List<Film> getMostPopular(int count, Long genreId, Integer year);
+
+    default List<Film> getMostPopular(int count) {
+        return getMostPopular(count, null, null);
+    }
 }

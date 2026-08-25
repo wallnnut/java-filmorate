@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmRowMapper;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -53,29 +54,58 @@ public class RatingDbStorage implements RatingStorage {
     }
 
     @Override
-    public List<Film> getMostPopular(int count) {
+    public List<Film> getMostPopular(int count, Long genreId, Integer year) {
+        StringBuilder sqlBuilder = new StringBuilder("""
+                SELECT f.film_id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       ar.age_rating_id,
+                       ar.name AS mpa_name
+                FROM film f
+                JOIN age_rating ar ON ar.age_rating_id = f.age_rating_id
+                """);
+
+        if (genreId != null) {
+            sqlBuilder.append(" JOIN film_genre fg ON f.film_id = fg.film_id ");
+        }
+
+        sqlBuilder.append("""
+                LEFT JOIN (
+                    SELECT film_id, COUNT(user_id) AS likes_count
+                    FROM film_rating
+                    GROUP BY film_id
+                ) fr ON f.film_id = fr.film_id
+                """);
+
+        List<Object> args = new ArrayList<>();
+        boolean hasConditions = false;
+
+        if (genreId != null) {
+            sqlBuilder.append(" WHERE fg.genre_id = ? ");
+            args.add(genreId);
+            hasConditions = true;
+        }
+
+        if (year != null) {
+            if (hasConditions) {
+                sqlBuilder.append(" AND EXTRACT(YEAR FROM f.release_date) = ? ");
+            } else {
+                sqlBuilder.append(" WHERE EXTRACT(YEAR FROM f.release_date) = ? ");
+            }
+            args.add(year);
+        }
+
+        sqlBuilder.append(" ORDER BY COALESCE(fr.likes_count, 0) DESC, f.film_id LIMIT ? ");
+        args.add(count);
+
         List<Film> films = jdbcTemplate.query(
-                """
-                        SELECT f.film_id,
-                               f.name,
-                               f.description,
-                               f.release_date,
-                               f.duration,
-                               ar.age_rating_id,
-                               ar.name AS mpa_name
-                        FROM film f
-                        JOIN age_rating ar ON ar.age_rating_id = f.age_rating_id
-                        LEFT JOIN (
-                            SELECT film_id, COUNT(user_id) AS likes_count
-                            FROM film_rating
-                            GROUP BY film_id
-                        ) fr ON f.film_id = fr.film_id
-                        ORDER BY COALESCE(fr.likes_count, 0) DESC, f.film_id
-                        LIMIT ?
-                        """,
+                sqlBuilder.toString(),
                 filmRowMapper,
-                count
+                args.toArray()
         );
+
         fillGenres(films);
         return films;
     }
