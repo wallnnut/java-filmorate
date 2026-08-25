@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.DirectorService;
 
@@ -18,32 +18,32 @@ public class DirectorController {
     private final DirectorService directorService;
 
     @GetMapping
-    public List<Director> getAll() {
+    public List<DirectorDto> getAll() {
         log.info("Received request to get all directors");
         return directorService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Director getById(@PathVariable Id id) {
+    public DirectorDto getById(@PathVariable Long id) {
         log.info("Received request to get director by id: {}", id);
-        return directorService.getById(id);
+        return directorService.getById(new Id(id));
     }
 
     @PostMapping
-    public Director create(@Valid @RequestBody Director director) {
-        log.info("Received request to create director: {}", director);
-        return directorService.create(director);
+    public DirectorDto create(@Valid @RequestBody DirectorDto directorDto) {
+        log.info("Received request to create director: {}", directorDto);
+        return directorService.create(directorDto);
     }
 
     @PutMapping
-    public Director update(@Valid @RequestBody Director director) {
-        log.info("Received request to update director: {}", director);
-        return directorService.update(director);
+    public DirectorDto update(@Valid @RequestBody DirectorDto directorDto) {
+        log.info("Received request to update director: {}", directorDto);
+        return directorService.update(directorDto);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Id id) {
+    public void delete(@PathVariable Long id) {
         log.info("Received request to delete director by id: {}", id);
-        directorService.delete(id);
+        directorService.delete(new Id(id));
     }
 }
