@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class FilmService {
     private final MpaService mpaService;
     private final GenreService genreService;
     private final DirectorService directorService;
+    private final UserStorage userStorage;
 
     public FilmDto addFilm(FilmDto film) {
         log.info("Attempting to add film: {}", film);
@@ -64,6 +66,15 @@ public class FilmService {
         log.debug("Request to get films by director {} sorted by {}", directorId, sortBy);
         directorService.getById(directorId);
         List<Film> films = filmStorage.getFilmsByDirector(directorId.getId(), sortBy);
+        return filmMapper.toDto(films);
+    }
+
+    public List<FilmDto> getCommonFilms(Id userId, Id friendId) {
+        log.info("Request to get common films of users {} and {}", userId, friendId);
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Found {} common films", films.size());
         return filmMapper.toDto(films);
     }
 

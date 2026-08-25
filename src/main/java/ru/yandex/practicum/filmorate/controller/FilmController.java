@@ -51,6 +51,14 @@ public class FilmController {
         return film;
     }
 
+    @DeleteMapping("/{id}")
+    public FilmDto deleteFilm(@PathVariable Id id) {
+        log.info("Received request to delete film with id: {}", id);
+        FilmDto deletedFilm = filmService.removeFilm(id);
+        log.info("Film deleted successfully: {}", deletedFilm);
+        return deletedFilm;
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@PathVariable Id id, @PathVariable Id userId) {
         log.info("Received request to add like from user {} to film {}", userId, id);
@@ -79,5 +87,13 @@ public class FilmController {
         List<FilmDto> films = filmService.getFilmsByDirector(directorId, sortBy);
         log.info("Returning {} films for director id: {}", films.size(), directorId);
         return films;
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Id userId, @RequestParam Id friendId) {
+        log.info("Received request to get common films of users {} and {}", userId, friendId);
+        List<FilmDto> commonFilms = filmService.getCommonFilms(userId, friendId);
+        log.info("Returning {} common films", commonFilms.size());
+        return commonFilms;
     }
 }

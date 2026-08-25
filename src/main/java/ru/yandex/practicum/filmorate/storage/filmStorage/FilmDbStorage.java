@@ -134,6 +134,28 @@ public class FilmDbStorage implements FilmStorage {
         fillDirectors(List.of(film));
         return film;
     }
+    @Override
+    public List<Film> getCommonFilms(Id userId, Id friendId) {
+        List<Film> films = jdbcTemplate.query(
+                FILM_SELECT + """
+                        WHERE f.film_id IN (
+                            SELECT fr1.film_id
+                            FROM film_rating fr1
+                            JOIN film_rating fr2 ON fr1.film_id = fr2.film_id
+                            WHERE fr1.user_id = ? AND fr2.user_id = ?
+                        )
+                        ORDER BY (
+                            SELECT COUNT(*) FROM film_rating fr WHERE fr.film_id = f.film_id
+                        ) DESC
+                        """,
+                filmRowMapper,
+                userId.getId(),
+                friendId.getId()
+        );
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
+    }
 
     @Override
     public List<Film> getFilmsByDirector(long directorId, String sortBy) {
@@ -193,83 +215,4 @@ public class FilmDbStorage implements FilmStorage {
         if (directors == null || directors.isEmpty()) {
             return;
         }
-        String sql = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
-        for (Director director : directors) {
-            if (director != null && director.getId() != null) {
-                jdbcTemplate.update(sql, filmId, director.getId());
-            }
-        }
-    }
-
-    private void fillDirectors(List<Film> films) {
-        if (films == null || films.isEmpty()) {
-            return;
-        }
-        Map<Long, Film> filmsById = new LinkedHashMap<>();
-        for (Film film : films) {
-            film.setDirectors(new LinkedHashSet<>());
-            filmsById.put(film.getId().getId(), film);
-        }
-
-        String placeholders = String.join(",", Collections.nCopies(films.size(), "?"));
-        String sql = """
-                SELECT fd.film_id, d.director_id, d.name
-                FROM film_directors fd
-                JOIN directors d ON d.director_id = fd.director_id
-                WHERE fd.film_id IN (%s)
-                """.formatted(placeholders);
-        Object[] args = films.stream().map(film -> film.getId().getId()).toArray();
-
-        jdbcTemplate.query(sql, (rs, rowNum) -> {
-            long filmId = rs.getLong("film_id");
-            Director director = new Director(rs.getLong("director_id"), rs.getString("name"));
-            Film film = filmsById.get(filmId);
-            if (film != null) {
-                film.getDirectors().add(director);
-            }
-            return null;
-        }, args);
-
-        for (Film film : films) {
-            Set<Director> sorted = film.getDirectors().stream()
-                    .sorted(Comparator.comparing(Director::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            film.setDirectors(sorted);
-        }
-    }
-
-    private void fillGenres(List<Film> films) {
-        if (films == null || films.isEmpty()) {
-            return;
-        }
-        Map<Long, Film> filmsById = new LinkedHashMap<>();
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>());
-            filmsById.put(film.getId().getId(), film);
-        }
-
-        String placeholders = String.join(",", Collections.nCopies(films.size(), "?"));
-        String sql = """
-                SELECT fg.film_id, g.genre_id, g.name
-                FROM film_genre fg
-                JOIN genre g ON g.genre_id = fg.genre_id
-                WHERE fg.film_id IN (%s)
-                ORDER BY g.genre_id
-                """.formatted(placeholders);
-        Object[] args = films.stream().map(film -> film.getId().getId()).toArray();
-
-        jdbcTemplate.query(sql, (rs, rowNum) -> {
-            long filmId = rs.getLong("film_id");
-            Genre genre = new Genre(new Id(rs.getLong("genre_id")), rs.getString("name"));
-            Film film = filmsById.get(filmId);
-            if (film != null) {
-                film.getGenres().add(genre);
-            }
-            return null;
-        }, args);
-        for (Film film : films) {
-            Set sorted = film.getGenres().stream().sorted(Comparator.comparing(genre -> genre.getId().getId())).collect(Collectors.toCollection(LinkedHashSet::new));
-            film.setGenres(sorted);
-        }
-    }
-}
+        String sql = "INSERT INTO film_directors (film_id, director_id) VALUES

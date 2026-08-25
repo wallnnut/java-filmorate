@@ -306,11 +306,23 @@ class FilmorateApplicationTest {
 
         friendShipService.addFriend(createdUser1.getId(), createdUser2.getId());
 
-        List<UserDto> friends = friendShipService.getFriends(createdUser1.getId());
-        assertThat(friends)
+        List<UserDto> friends1 = friendShipService.getFriends(createdUser1.getId());
+        assertThat(friends1)
                 .hasSize(1)
                 .extracting(UserDto::getId)
                 .containsExactly(createdUser2.getId());
+        assertThat(friendShipService.getFriends(createdUser2.getId())).isEmpty();
+    }
+
+    @Test
+    void shouldRejectFriend() {
+        User createdUser1 = userStorage.addUser(user1);
+        User createdUser2 = userStorage.addUser(user2);
+
+        friendShipService.addFriend(createdUser1.getId(), createdUser2.getId());
+        friendShipService.rejectFriend(createdUser2.getId(), createdUser1.getId());
+
+        assertThat(friendShipService.getFriends(createdUser1.getId())).isEmpty();
         assertThat(friendShipService.getFriends(createdUser2.getId())).isEmpty();
     }
 
@@ -345,6 +357,26 @@ class FilmorateApplicationTest {
                 .hasSize(1)
                 .extracting(UserDto::getId)
                 .containsExactly(createdUser3.getId());
+    }
+
+    @Test
+    void shouldGetCommonFilms() {
+        User createdUser1 = userStorage.addUser(user1);
+        User createdUser2 = userStorage.addUser(user2);
+        Film createdFilm1 = filmStorage.addFilm(film1);
+        Film createdFilm2 = filmStorage.addFilm(film2);
+        Film createdFilm3 = filmStorage.addFilm(film3);
+
+        filmRatingService.putLike(createdFilm1.getId(), createdUser1.getId());
+        filmRatingService.putLike(createdFilm1.getId(), createdUser2.getId());
+        filmRatingService.putLike(createdFilm2.getId(), createdUser1.getId());
+        filmRatingService.putLike(createdFilm3.getId(), createdUser2.getId());
+
+        List<FilmDto> commonFilms = filmService.getCommonFilms(createdUser1.getId(), createdUser2.getId());
+        assertThat(commonFilms)
+                .hasSize(1)
+                .extracting(FilmDto::getId)
+                .containsExactly(createdFilm1.getId());
     }
 
     private static User newUser(String email, String login, String name, LocalDate birthday) {
