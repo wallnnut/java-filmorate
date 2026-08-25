@@ -48,6 +48,7 @@ public class FilmRatingService {
         log.debug("Returning {} popular films", popularFilms.size());
         return filmMapper.toDto(popularFilms);
     }
+
     public List<FilmDto> getMostPopular(int count) {
         return getMostPopular(count, null, null);
     }
