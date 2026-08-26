@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validators.ValidReleaseDate;
@@ -35,4 +36,6 @@ public class FilmDto {
 
     @NotNull(message = "Рейтинг MPA обязателен")
     private Mpa mpa;
+
+    private Set<Director> directors = new LinkedHashSet<>();
 }
