@@ -48,4 +48,12 @@ public class FilmRatingService {
         log.debug("Returning {} popular films", popularFilms.size());
         return filmMapper.toDto(popularFilms);
     }
+
+    public List<FilmDto> getRecommendations(Id userId) {
+        log.info("Requesting recommendations for user {}", userId);
+        userStorage.getUserById(userId);
+        List<Film> films = filmRatingStorage.getRecommendations(userId);
+        log.debug("Found {} recommended films for user {}", films.size(), userId);
+        return filmMapper.toDto(films);
+    }
 }
