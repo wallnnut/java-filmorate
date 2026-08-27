@@ -42,10 +42,15 @@ public class FilmRatingService {
         log.info("Like from user {} on film {} successfully removed", userId, filmId);
     }
 
-    public List<FilmDto> getMostPopular(int count) {
-        log.info("Requesting top {} most popular films", count);
-        List<Film> popularFilms = filmRatingStorage.getMostPopular(count);
+    public List<FilmDto> getMostPopular(int count, Long genreId, Integer year) {
+        log.info("Requesting top {} most popular films with genreId: {} and year: {}", count, genreId, year);
+        List<Film> popularFilms = filmRatingStorage.getMostPopular(count, genreId, year);
         log.debug("Returning {} popular films", popularFilms.size());
         return filmMapper.toDto(popularFilms);
     }
+
+    public List<FilmDto> getMostPopular(int count) {
+        return getMostPopular(count, null, null);
+    }
+
 }
