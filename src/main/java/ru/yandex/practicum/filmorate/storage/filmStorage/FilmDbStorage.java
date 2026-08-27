@@ -195,6 +195,54 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> searchFilms(String query, List<String> by) {
+        boolean searchByTitle = by.contains("title");
+        boolean searchByDirector = by.contains("director");
+
+        StringBuilder sql = new StringBuilder(FILM_SELECT);
+        sql.append(" WHERE (");
+
+        if (searchByTitle && searchByDirector) {
+            sql.append("""
+                    LOWER(f.name) LIKE LOWER(?)
+                    OR f.film_id IN (
+                        SELECT fd.film_id FROM film_directors fd
+                        JOIN directors d ON d.director_id = fd.director_id
+                        WHERE LOWER(d.name) LIKE LOWER(?)
+                    )
+                    """);
+        } else if (searchByTitle) {
+            sql.append("LOWER(f.name) LIKE LOWER(?)");
+        } else if (searchByDirector) {
+            sql.append("""
+                    f.film_id IN (
+                        SELECT fd.film_id FROM film_directors fd
+                        JOIN directors d ON d.director_id = fd.director_id
+                        WHERE LOWER(d.name) LIKE LOWER(?)
+                    )
+                    """);
+        }
+
+        sql.append(") ORDER BY (");
+        sql.append("SELECT COUNT(*) FROM film_rating fr WHERE fr.film_id = f.film_id");
+        sql.append(") DESC");
+
+        String likePattern = "%" + query + "%";
+        List<Object> args = new java.util.ArrayList<>();
+        if (searchByTitle) {
+            args.add(likePattern);
+        }
+        if (searchByDirector) {
+            args.add(likePattern);
+        }
+
+        List<Film> films = jdbcTemplate.query(sql.toString(), filmRowMapper, args.toArray());
+        fillGenres(films);
+        fillDirectors(films);
+        return films;
+    }
+
     private void saveFilmGenres(long filmId, Set<Genre> genres) {
         if (genres == null || genres.isEmpty()) {
             return;

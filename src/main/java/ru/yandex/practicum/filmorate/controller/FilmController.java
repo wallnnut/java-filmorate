@@ -100,4 +100,14 @@ public class FilmController {
         log.info("Returning {} common films", commonFilms.size());
         return commonFilms;
     }
+
+    @GetMapping("/search")
+    public List<FilmDto> searchFilms(
+            @RequestParam String query,
+            @RequestParam List<String> by) {
+        log.info("Received request to search films with query '{}' by {}", query, by);
+        List<FilmDto> films = filmService.searchFilms(query, by);
+        log.info("Returning {} films", films.size());
+        return films;
+    }
 }

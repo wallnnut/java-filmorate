@@ -379,6 +379,27 @@ class FilmorateApplicationTest {
                 .containsExactly(createdFilm1.getId());
     }
 
+    @Test
+    void shouldSearchFilmsByTitle() {
+        Film createdFilm1 = filmStorage.addFilm(film1);
+        Film createdFilm2 = filmStorage.addFilm(film2);
+
+        List<FilmDto> result = filmService.searchFilms("Film1", List.of("title"));
+        assertThat(result)
+                .extracting(FilmDto::getId)
+                .containsExactly(createdFilm1.getId());
+        assertThat(filmService.searchFilms("Film2", List.of("title")))
+                .extracting(FilmDto::getId)
+                .containsExactly(createdFilm2.getId());
+        assertThat(filmService.searchFilms("Unknown", List.of("title"))).isEmpty();
+    }
+
+    @Test
+    void shouldSearchFilmsByDirector() {
+        List<FilmDto> result = filmService.searchFilms("nonexistent", List.of("director"));
+        assertThat(result).isEmpty();
+    }
+
     private static User newUser(String email, String login, String name, LocalDate birthday) {
         User user = new User();
         user.setEmail(email);

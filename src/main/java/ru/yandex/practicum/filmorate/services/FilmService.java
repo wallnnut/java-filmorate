@@ -82,6 +82,13 @@ public class FilmService {
         return filmMapper.toDto(films);
     }
 
+    public List<FilmDto> searchFilms(String query, List<String> by) {
+        log.info("Searching films with query '{}' by {}", query, by);
+        List<Film> films = filmStorage.searchFilms(query, by);
+        log.info("Found {} films", films.size());
+        return filmMapper.toDto(films);
+    }
+
     private void checkMpa(FilmDto film) {
         if (film.getMpa() != null) {
             mpaService.getById(film.getMpa().getId());
