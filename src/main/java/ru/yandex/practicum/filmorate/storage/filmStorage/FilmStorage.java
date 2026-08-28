@@ -17,9 +17,11 @@ public interface FilmStorage {
 
     Film getFilmById(Id id) throws NotFoundException;
 
-    List<Film> getFilmsByDirector(long directorId, String sortBy);
-
     List<Film> getCommonFilms(Id userId, Id friendId);
+
+    void fillDirectors(List<Film> films);
+
+    List<Film> getFilmsByDirector(long directorId, String sortBy);
 
     List<Film> searchFilms(String query, List<String> by);
 }

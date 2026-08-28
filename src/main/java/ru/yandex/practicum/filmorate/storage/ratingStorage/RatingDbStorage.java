@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.storage.filmStorage.FilmRowMapper;
+import ru.yandex.practicum.filmorate.storage.filmStorage.FilmStorage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class RatingDbStorage implements RatingStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
+    private final FilmStorage filmStorage;
 
     @Override
     public void putLike(Id filmId, Id userId) {
@@ -107,6 +109,7 @@ public class RatingDbStorage implements RatingStorage {
         );
 
         fillGenres(films);
+        filmStorage.fillDirectors(films);
         return films;
     }
 
@@ -149,6 +152,7 @@ public class RatingDbStorage implements RatingStorage {
                 userId.getId()
         );
         fillGenres(films);
+        filmStorage.fillDirectors(films);
         return films;
     }
 

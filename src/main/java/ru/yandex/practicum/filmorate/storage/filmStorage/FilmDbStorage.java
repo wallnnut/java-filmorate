@@ -158,7 +158,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    @Override
+
     public List<Film> getFilmsByDirector(long directorId, String sortBy) {
         String sql;
         if ("year".equalsIgnoreCase(sortBy)) {
@@ -272,7 +272,8 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private void fillDirectors(List<Film> films) {
+    @Override
+    public void fillDirectors(List<Film> films) {
         if (films == null || films.isEmpty()) {
             return;
         }
