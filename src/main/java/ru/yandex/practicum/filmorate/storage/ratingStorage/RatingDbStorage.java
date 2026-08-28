@@ -98,8 +98,8 @@ public class RatingDbStorage implements RatingStorage {
             }
             args.add(year);
         }
-
-        sqlBuilder.append(" ORDER BY COALESCE(fr.likes_count, 0) DESC, f.film_id LIMIT ? ");
+        
+        sqlBuilder.append(" ORDER BY COALESCE(fr.likes_count, 0) DESC LIMIT ? ");
         args.add(count);
 
         List<Film> films = jdbcTemplate.query(
