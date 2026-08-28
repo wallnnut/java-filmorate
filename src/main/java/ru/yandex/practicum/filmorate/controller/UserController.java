@@ -4,9 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.dto.UserEventDto;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FriendShipService;
 import ru.yandex.practicum.filmorate.services.UserEventService;
 import ru.yandex.practicum.filmorate.services.UserService;
@@ -20,6 +22,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final FriendShipService friendShipService;
+    private final FilmRatingService filmRatingService;
     private final UserEventService userEventService;
 
     @PutMapping("/{userId}/friends/{friendId}")
@@ -96,6 +99,14 @@ public class UserController {
         UserDto user = userService.getUserById(id);
         log.info("Found user: {}", user);
         return user;
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable Id id) {
+        log.info("Received request for recommendations for user {}", id);
+        List<FilmDto> recommendations = filmRatingService.getRecommendations(id);
+        log.info("Returning {} recommendations for user {}", recommendations.size(), id);
+        return recommendations;
     }
 
     @GetMapping("/{id}/feed")

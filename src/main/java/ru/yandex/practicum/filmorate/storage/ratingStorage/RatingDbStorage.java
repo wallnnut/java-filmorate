@@ -110,6 +110,48 @@ public class RatingDbStorage implements RatingStorage {
         return films;
     }
 
+    @Override
+    public List<Film> getRecommendations(Id userId) {
+        Long similarUserId = jdbcTemplate.query(
+                """
+                        SELECT otherLikes.user_id
+                        FROM film_rating myLikes
+                        JOIN film_rating otherLikes
+                            ON myLikes.film_id = otherLikes.film_id
+                            AND otherLikes.user_id != myLikes.user_id
+                        WHERE myLikes.user_id = ?
+                        GROUP BY otherLikes.user_id
+                        ORDER BY COUNT(*) DESC
+                        LIMIT 1
+                        """,
+                rs -> rs.next() ? rs.getLong("user_id") : null,
+                userId.getId()
+        );
+
+        if (similarUserId == null) {
+            return Collections.emptyList();
+        }
+
+        List<Film> films = jdbcTemplate.query(
+                """
+                        SELECT f.film_id, f.name, f.description, f.release_date, f.duration,
+                               ar.age_rating_id, ar.name AS mpa_name
+                        FROM film_rating similarUserLikes
+                        JOIN film f ON f.film_id = similarUserLikes.film_id
+                        JOIN age_rating ar ON ar.age_rating_id = f.age_rating_id
+                        WHERE similarUserLikes.user_id = ?
+                          AND similarUserLikes.film_id NOT IN (
+                              SELECT film_id FROM film_rating WHERE user_id = ?
+                          )
+                        """,
+                filmRowMapper,
+                similarUserId,
+                userId.getId()
+        );
+        fillGenres(films);
+        return films;
+    }
+
     private void fillGenres(List<Film> films) {
         if (films == null || films.isEmpty()) {
             return;

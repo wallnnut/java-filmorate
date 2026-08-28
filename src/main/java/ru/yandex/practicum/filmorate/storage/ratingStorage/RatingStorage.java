@@ -15,4 +15,6 @@ public interface RatingStorage {
     default List<Film> getMostPopular(int count) {
         return getMostPopular(count, null, null);
     }
+
+    List<Film> getRecommendations(Id userId);
 }

@@ -54,6 +54,14 @@ public class FilmRatingService {
         return filmMapper.toDto(popularFilms);
     }
 
+    public List<FilmDto> getRecommendations(Id userId) {
+        log.info("Requesting recommendations for user {}", userId);
+        userStorage.getUserById(userId);
+        List<Film> films = filmRatingStorage.getRecommendations(userId);
+        log.debug("Found {} recommended films for user {}", films.size(), userId);
+        return filmMapper.toDto(films);
+    }
+
     public List<FilmDto> getMostPopular(int count) {
         return getMostPopular(count, null, null);
     }
