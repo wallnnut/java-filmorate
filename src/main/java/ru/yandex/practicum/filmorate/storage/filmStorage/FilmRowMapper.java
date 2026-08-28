@@ -22,6 +22,7 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDuration(rs.getInt("duration"));
         film.setMpa(new Mpa(new Id(rs.getLong("age_rating_id")), rs.getString("mpa_name")));
         film.setGenres(new LinkedHashSet<>());
+        film.setDirectors(new LinkedHashSet<>());
         return film;
     }
 }
