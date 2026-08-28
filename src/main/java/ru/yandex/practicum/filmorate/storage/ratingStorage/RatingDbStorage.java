@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.ratingStorage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,7 @@ import java.util.List;
 @Primary
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class RatingDbStorage implements RatingStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
@@ -117,13 +119,14 @@ public class RatingDbStorage implements RatingStorage {
                         WHERE myLikes.user_id = ?
                         GROUP BY otherLikes.user_id
                         ORDER BY COUNT(*) DESC
-                        LIMIT 1
+                        LIMIT 10
                         """,
                 rs -> rs.next() ? rs.getLong("user_id") : null,
                 userId.getId()
         );
 
         if (similarUserId == null) {
+            log.info("Empty list received");
             return Collections.emptyList();
         }
 
