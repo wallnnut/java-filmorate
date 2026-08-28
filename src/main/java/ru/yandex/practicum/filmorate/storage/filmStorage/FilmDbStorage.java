@@ -116,7 +116,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(Id id) throws NotFoundException {
+    public Film getFilmById(Id id) {
         List<Film> films = jdbcTemplate.query(
                 FILM_SELECT + " WHERE f.film_id = ?",
                 filmRowMapper,
