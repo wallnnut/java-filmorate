@@ -72,7 +72,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film updateFilm(Film film) throws NotFoundException {
+    public Film updateFilm(Film film) {
         getFilmById(film.getId());
         String sql = """
                 UPDATE film
@@ -101,7 +101,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film removeFilm(Id id) throws NotFoundException {
+    public Film removeFilm(Id id) {
         Film film = getFilmById(id);
         jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", id.getId());
         log.debug("Film removed from DB with id {}", id.getId());
@@ -116,7 +116,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(Id id) throws NotFoundException {
+    public Film getFilmById(Id id) {
         List<Film> films = jdbcTemplate.query(
                 FILM_SELECT + " WHERE f.film_id = ?",
                 filmRowMapper,

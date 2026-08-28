@@ -1,0 +1,2 @@
+### Получить популярные фильмы
+GET http://localhost:8080/films/popular?count=10&genreId=1&year=1999
