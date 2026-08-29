@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
+import ru.yandex.practicum.filmorate.validators.ValidSearchBy;
 
 import java.util.List;
 
@@ -104,7 +105,7 @@ public class FilmController {
     @GetMapping("/search")
     public List<FilmDto> searchFilms(
             @RequestParam String query,
-            @RequestParam List<String> by) {
+            @RequestParam @ValidSearchBy({"title", "director"}) List<String> by) {
         log.info("Received request to search films with query '{}' by {}", query, by);
         List<FilmDto> films = filmService.searchFilms(query, by);
         log.info("Returning {} films", films.size());

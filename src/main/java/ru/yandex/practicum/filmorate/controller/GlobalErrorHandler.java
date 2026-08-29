@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -40,6 +41,38 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
             String message = err.getDefaultMessage();
             errorsMap.put(key, message);
             log.debug("Field '{}' validation failed: {}", key, message);
+        });
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Ошибка валидации",
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now()
+                             .toString(),
+                errorsMap
+        );
+        log.info("Returning validation error response: {}", errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        log.warn("Method parameter validation error: {}", ex.getMessage());
+        Map<String, String> errorsMap = new HashMap<>();
+        ex.getParameterValidationResults().forEach(result -> {
+            String name = result.getMethodParameter().getParameterName();
+            if (name == null) {
+                name = "request";
+            }
+            String key = name;
+            result.getResolvableErrors().forEach(error -> {
+                errorsMap.put(key, error.getDefaultMessage());
+                log.debug("Parameter '{}' validation failed: {}", key, error.getDefaultMessage());
+            });
         });
 
         ErrorResponse errorResponse = new ErrorResponse(
