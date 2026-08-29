@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -199,6 +200,10 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilms(String query, List<String> by) {
         boolean searchByTitle = by.contains("title");
         boolean searchByDirector = by.contains("director");
+
+        if (!searchByTitle && !searchByDirector) {
+            throw new ValidationException("Параметр by должен содержать title или director");
+        }
 
         StringBuilder sql = new StringBuilder(FILM_SELECT);
         sql.append(" WHERE (");
