@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -62,6 +63,9 @@ public class FilmService {
 
     public List<FilmDto> getCommonFilms(Id userId, Id friendId) {
         log.info("Request to get common films of users {} and {}", userId, friendId);
+        if (userId.equals(friendId)) {
+            throw new ValidationException("Идентификаторы пользователей не могут совпадать");
+        }
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
         List<Film> films = filmStorage.getCommonFilms(userId, friendId);
