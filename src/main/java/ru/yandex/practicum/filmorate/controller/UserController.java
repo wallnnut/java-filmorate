@@ -4,9 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.dto.UserEventDto;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FriendShipService;
+import ru.yandex.practicum.filmorate.services.UserEventService;
 import ru.yandex.practicum.filmorate.services.UserService;
 
 import java.util.List;
@@ -18,12 +22,28 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final FriendShipService friendShipService;
+    private final FilmRatingService filmRatingService;
+    private final UserEventService userEventService;
 
     @PutMapping("/{userId}/friends/{friendId}")
     public void addFriend(@PathVariable Id userId, @PathVariable Id friendId) {
         log.info("User {} is adding friend {}", userId, friendId);
         friendShipService.addFriend(userId, friendId);
         log.info("Friendship between {} and {} established", userId, friendId);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}/accept")
+    public void acceptFriend(@PathVariable Id userId, @PathVariable Id friendId) {
+        log.info("User {} is accepting friend {}", userId, friendId);
+        friendShipService.acceptFriend(userId, friendId);
+        log.info("Friendship between {} and {} accepted", userId, friendId);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}/reject")
+    public void rejectFriend(@PathVariable Id userId, @PathVariable Id friendId) {
+        log.info("User {} is rejecting friend {}", userId, friendId);
+        friendShipService.rejectFriend(userId, friendId);
+        log.info("Friendship between {} and {} rejected", userId, friendId);
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")
@@ -79,5 +99,29 @@ public class UserController {
         UserDto user = userService.getUserById(id);
         log.info("Found user: {}", user);
         return user;
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable Id id) {
+        log.info("Received request for recommendations for user {}", id);
+        List<FilmDto> recommendations = filmRatingService.getRecommendations(id);
+        log.info("Returning {} recommendations for user {}", recommendations.size(), id);
+        return recommendations;
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<UserEventDto> getFeed(@PathVariable Id id) {
+        log.info("Request to get feed of user {}", id);
+        List<UserEventDto> feed = userEventService.getFeed(id);
+        log.info("Returning {} events for user {}", feed.size(), id);
+        return feed;
+    }
+
+    @DeleteMapping("/{id}")
+    public UserDto deleteUser(@PathVariable Id id) {
+        log.info("Received request to delete user with id: {}", id);
+        UserDto deletedUser = userService.removeUser(id);
+        log.info("User deleted successfully: {}", deletedUser);
+        return deletedUser;
     }
 }

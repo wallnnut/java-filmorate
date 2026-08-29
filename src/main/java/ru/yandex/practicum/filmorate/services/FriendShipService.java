@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.mappers.UserMapper;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Id;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friendsStorage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.userStorage.UserStorage;
@@ -20,6 +22,7 @@ public class FriendShipService {
     private final FriendsStorage friendsStorage;
     private final UserStorage userStorage;
     private final UserMapper userMapper;
+    private final UserEventService userEventService;
 
     public void addFriend(Id userId, Id friendId) {
         log.info("Adding friend: user {} -> friend {}", userId, friendId);
@@ -35,7 +38,40 @@ public class FriendShipService {
         userStorage.getUserById(friendId);
         log.debug("Validation passed, storing friendship");
         friendsStorage.addFriend(userId, friendId);
+        userEventService.record(userId, Event.FRIEND, Operation.ADD, friendId);
         log.info("Friendship between {} and {} successfully added", userId, friendId);
+    }
+
+    public void acceptFriend(Id userId, Id friendId) {
+        log.info("Accepting friend: user {} accepting friend {}", userId, friendId);
+        if (userId == null || friendId == null) {
+            log.warn("Attempt to accept friend with null userId or friendId");
+            return;
+        }
+        if (userId.equals(friendId)) {
+            log.warn("User {} tried to accept himself as friend", userId);
+            return;
+        }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        friendsStorage.acceptFriend(userId, friendId);
+        log.info("Friendship between {} and {} accepted", userId, friendId);
+    }
+
+    public void rejectFriend(Id userId, Id friendId) {
+        log.info("Rejecting friend: user {} rejecting friend {}", userId, friendId);
+        if (userId == null || friendId == null) {
+            log.warn("Attempt to reject friend with null userId or friendId");
+            return;
+        }
+        if (userId.equals(friendId)) {
+            log.warn("User {} tried to reject himself as friend", userId);
+            return;
+        }
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        friendsStorage.rejectFriend(userId, friendId);
+        log.info("Friendship between {} and {} rejected", userId, friendId);
     }
 
     public void removeFriend(Id userId, Id friendId) {
@@ -52,6 +88,7 @@ public class FriendShipService {
         userStorage.getUserById(friendId);
         log.debug("Validation passed, removing friendship");
         friendsStorage.removeFriend(userId, friendId);
+        userEventService.record(userId, Event.FRIEND, Operation.REMOVE, friendId);
         log.info("Friendship between {} and {} successfully removed", userId, friendId);
     }
 

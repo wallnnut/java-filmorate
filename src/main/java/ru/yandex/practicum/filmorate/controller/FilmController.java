@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.model.Id;
 import ru.yandex.practicum.filmorate.services.FilmRatingService;
 import ru.yandex.practicum.filmorate.services.FilmService;
+import ru.yandex.practicum.filmorate.validators.ValidSearchBy;
 
 import java.util.List;
 
@@ -51,6 +52,14 @@ public class FilmController {
         return film;
     }
 
+    @DeleteMapping("/{id}")
+    public FilmDto deleteFilm(@PathVariable Id id) {
+        log.info("Received request to delete film with id: {}", id);
+        FilmDto deletedFilm = filmService.removeFilm(id);
+        log.info("Film deleted successfully: {}", deletedFilm);
+        return deletedFilm;
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@PathVariable Id id, @PathVariable Id userId) {
         log.info("Received request to add like from user {} to film {}", userId, id);
@@ -66,10 +75,40 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopularFilms(@RequestParam(required = false, defaultValue = "10") int count) {
-        log.info("Received request to get popular films with count = {}", count);
-        List<FilmDto> popularFilms = filmRatingService.getMostPopular(count);
+    public List<FilmDto> getPopularFilms(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Integer year
+    ) {
+        log.info("Received request to get popular films with count = {}, genreId = {}, year = {}", count, genreId, year);
+        List<FilmDto> popularFilms = filmRatingService.getMostPopular(count, genreId, year);
         log.info("Returning {} popular films", popularFilms.size());
         return popularFilms;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(@PathVariable Id directorId, @RequestParam String sortBy) {
+        log.info("Received request to get films by director id: {} sorted by: {}", directorId, sortBy);
+        List<FilmDto> films = filmService.getFilmsByDirector(directorId, sortBy);
+        log.info("Returning {} films for director id: {}", films.size(), directorId);
+        return films;
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Id userId, @RequestParam Id friendId) {
+        log.info("Received request to get common films of users {} and {}", userId, friendId);
+        List<FilmDto> commonFilms = filmService.getCommonFilms(userId, friendId);
+        log.info("Returning {} common films", commonFilms.size());
+        return commonFilms;
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> searchFilms(
+            @RequestParam String query,
+            @RequestParam @ValidSearchBy({"title", "director"}) List<String> by) {
+        log.info("Received request to search films with query '{}' by {}", query, by);
+        List<FilmDto> films = filmService.searchFilms(query, by);
+        log.info("Returning {} films", films.size());
+        return films;
     }
 }
