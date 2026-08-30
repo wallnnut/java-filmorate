@@ -49,7 +49,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) throws NotFoundException {
+    public User updateUser(User user) {
         getUserById(user.getId());
         String sql = """
                 UPDATE users
@@ -69,7 +69,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User removeUser(Id id) throws NotFoundException {
+    public User removeUser(Id id) {
         User user = getUserById(id);
         jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", id.getId());
         log.debug("User removed from DB with id {}", id.getId());
@@ -87,7 +87,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(Id id) throws NotFoundException {
+    public User getUserById(Id id) {
         String sql = """
                 SELECT user_id, email, login, name, birthday
                 FROM users
@@ -101,7 +101,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getUserByIds(List<Id> ids) throws NotFoundException {
+    public List<User> getUserByIds(List<Id> ids) {
         if (ids == null || ids.isEmpty()) {
             return Collections.emptyList();
         }
