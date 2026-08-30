@@ -400,6 +400,39 @@ class FilmorateApplicationTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    void shouldRecommendFilmsFromSeveralSimilarUsers() {
+        User target = userStorage.addUser(user1);
+        User similarA = userStorage.addUser(user2);
+        User similarB = userStorage.addUser(user3);
+        Film shared1 = filmStorage.addFilm(film1);
+        Film shared2 = filmStorage.addFilm(film2);
+        Film extraFromA = filmStorage.addFilm(film3);
+        Film extraFromB = filmStorage.addFilm(newFilm(
+                "FilmB",
+                "description FilmB",
+                LocalDate.of(2001, 1, 1),
+                90,
+                new Mpa(new Id(1), "G"),
+                Set.of()
+        ));
+
+        filmRatingService.putLike(shared1.getId(), target.getId());
+        filmRatingService.putLike(shared2.getId(), target.getId());
+
+        filmRatingService.putLike(shared1.getId(), similarA.getId());
+        filmRatingService.putLike(shared2.getId(), similarA.getId());
+        filmRatingService.putLike(extraFromA.getId(), similarA.getId());
+
+        filmRatingService.putLike(shared1.getId(), similarB.getId());
+        filmRatingService.putLike(extraFromB.getId(), similarB.getId());
+
+        List<FilmDto> recommendations = filmRatingService.getRecommendations(target.getId());
+        assertThat(recommendations)
+                .extracting(FilmDto::getId)
+                .containsExactlyInAnyOrder(extraFromA.getId(), extraFromB.getId());
+    }
+
     private static User newUser(String email, String login, String name, LocalDate birthday) {
         User user = new User();
         user.setEmail(email);

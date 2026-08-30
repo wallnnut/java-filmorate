@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -72,7 +73,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film updateFilm(Film film) throws NotFoundException {
+    public Film updateFilm(Film film) {
         getFilmById(film.getId());
         String sql = """
                 UPDATE film
@@ -101,7 +102,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film removeFilm(Id id) throws NotFoundException {
+    public Film removeFilm(Id id) {
         Film film = getFilmById(id);
         jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", id.getId());
         log.debug("Film removed from DB with id {}", id.getId());
@@ -192,6 +193,10 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilms(String query, List<String> by) {
         boolean searchByTitle = by.contains("title");
         boolean searchByDirector = by.contains("director");
+
+        if (!searchByTitle && !searchByDirector) {
+            throw new ValidationException("Параметр by должен содержать title или director");
+        }
 
         StringBuilder sql = new StringBuilder(FILM_SELECT);
         sql.append(" WHERE (");

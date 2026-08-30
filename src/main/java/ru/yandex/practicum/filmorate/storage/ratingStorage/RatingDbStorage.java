@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.ratingStorage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,10 @@ import java.util.List;
 @Primary
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class RatingDbStorage implements RatingStorage {
+    private static final int SIMILAR_USERS_LIMIT = 10;
+
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
     private final FilmDetailsFiller filmDetailsFiller;
@@ -107,7 +111,7 @@ public class RatingDbStorage implements RatingStorage {
 
     @Override
     public List<Film> getRecommendations(Id userId) {
-        Long similarUserId = jdbcTemplate.query(
+        List<Long> similarUserIds = jdbcTemplate.query(
                 """
                         SELECT otherLikes.user_id
                         FROM film_rating myLikes
@@ -117,31 +121,42 @@ public class RatingDbStorage implements RatingStorage {
                         WHERE myLikes.user_id = ?
                         GROUP BY otherLikes.user_id
                         ORDER BY COUNT(*) DESC
-                        LIMIT 1
+                        LIMIT ?
                         """,
-                rs -> rs.next() ? rs.getLong("user_id") : null,
-                userId.getId()
+                (rs, rowNum) -> rs.getLong("user_id"),
+                userId.getId(),
+                SIMILAR_USERS_LIMIT
         );
 
-        if (similarUserId == null) {
+        if (similarUserIds.isEmpty()) {
+            log.info("No similar users found for user {}", userId);
             return Collections.emptyList();
         }
+
+        String inPlaceholders = String.join(",", Collections.nCopies(similarUserIds.size(), "?"));
+        List<Object> args = new ArrayList<>(similarUserIds);
+        args.add(userId.getId());
 
         List<Film> films = jdbcTemplate.query(
                 """
                         SELECT f.film_id, f.name, f.description, f.release_date, f.duration,
                                ar.age_rating_id, ar.name AS mpa_name
-                        FROM film_rating similarUserLikes
-                        JOIN film f ON f.film_id = similarUserLikes.film_id
+                        FROM film f
                         JOIN age_rating ar ON ar.age_rating_id = f.age_rating_id
-                        WHERE similarUserLikes.user_id = ?
-                          AND similarUserLikes.film_id NOT IN (
-                              SELECT film_id FROM film_rating WHERE user_id = ?
-                          )
-                        """,
+                        WHERE f.film_id IN (
+                            SELECT similarUserLikes.film_id
+                            FROM film_rating similarUserLikes
+                            WHERE similarUserLikes.user_id IN (%s)
+                              AND similarUserLikes.film_id NOT IN (
+                                  SELECT film_id FROM film_rating WHERE user_id = ?
+                              )
+                        )
+                        ORDER BY (
+                            SELECT COUNT(*) FROM film_rating fr WHERE fr.film_id = f.film_id
+                        ) DESC, f.film_id
+                        """.formatted(inPlaceholders),
                 filmRowMapper,
-                similarUserId,
-                userId.getId()
+                args.toArray()
         );
         filmDetailsFiller.fill(films);
         return films;
